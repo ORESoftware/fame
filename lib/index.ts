@@ -3,10 +3,12 @@
 
 // core
 import util = require('util');
+import path = require('path');
 
 //npm
 import async = require('async');
 import cp = require('child_process');
+import JSONStdio = require('json-stdio');
 
 //project
 import {createParser} from './parser';
@@ -15,6 +17,8 @@ import {createParser} from './parser';
 // git log --author="<authorname>" --pretty=tformat: --numstat
 // git log  --pretty=tformat: --numstat --pretty=format:'{"author":"%ae"}'
 // git log master --numstat --pretty="%ae"
+
+const child = path.resolve(__dirname + '/child.js');
 
 const command = [
   'git',
@@ -71,60 +75,27 @@ async.autoInject({
         
         console.log('Analyzing commits for author:', auth);
         
-        const k = cp.spawn('bash');
-        const p = createParser();
+        const k = cp.spawn('node', [child], {
+          env: Object.assign({}, process.env, {
+            FAME_AUTH: auth
+          })
+        });
         
-        k.stdin.write(`git log master --author="${auth}" --pretty=tformat: --numstat`);
-        k.stdin.end('\n');
+        const p = JSONStdio.createParser();
         
-        const uniqueFiles = {} as { [key: string]: boolean };
+        let value = {};
         
-        const v = {
-          commits: 0,
-          changes: 0,
-          overall: 0,
-          added: 0,
-          removed: 0,
-          author: auth,
-          files: 0
-        };
-        
-        k.stdout.pipe(p).on('data', function (d: string) {
-          
-          try {
-            const values = String(d).split(/\s+/g);
-            // console.log('newline values:', values);
-            
-            if (values[0] && values[1] && values[2]) {
-              
-              v.commits++;
-              
-              const f = String(values[2]);
-              
-              if (f.startsWith('node_modules/') || f.startsWith('/node_modules/')) {
-                return;
-              }
-              
-              if (String(values[2]).endsWith('.js')) {
-                values[0] !== '-' && (v.added += parseInt(values[0]));
-                values[1] !== '-' && values[1] !== '-' && (v.changes += Math.abs(parseInt(values[0]) - parseInt(values[1])));
-                values[1] !== '-' && (v.removed += parseInt(values[1]));
-              }
-              
-              if (!uniqueFiles[values[2]]) {
-                uniqueFiles[values[2]] = true;
-                v.files++;
-              }
-            }
-          }
-          catch (err) {
-            log.error(err.stack);
-          }
+        k.stdout.pipe(p)
+        .once('error', function (err) {
+          this.removeAllListeners();
+          cb(err);
         })
-        .once('error', cb)
+        .once(JSONStdio.stdEventName, function (v) {
+          value = v;
+        })
         .once('end', function () {
-          v.overall = v.added - v.removed;
-          cb(null, v);
+          this.removeAllListeners();
+          cb(null, value);
         });
         
       }, cb);
