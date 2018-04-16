@@ -68,19 +68,20 @@ async.autoInject({
   
   getValuesByAuthor: function (findAuthors: Array<string>, cb: Function) {
     
-    async.mapLimit(findAuthors, 1, function (auth, cb) {
+    async.mapLimit(findAuthors, 3, function (auth, cb) {
       
       console.log('Analyzing commits for author:', auth);
       
       const k = cp.spawn('bash');
       const p = createParser();
       
-      k.stdin.write(`git log dev --author="${auth}" --pretty=tformat: --numstat`);
+      k.stdin.write(`git log master --author="${auth}" --pretty=tformat: --numstat`);
       k.stdin.end('\n');
       
       const uniqueFiles = {} as { [key: string]: boolean };
       
       const v = {
+        commits: 0,
         changes: 0,
         overall: 0,
         added: 0,
@@ -97,11 +98,14 @@ async.autoInject({
           
           if (values[0] && values[1] && values[2]) {
   
+            v.commits++;
+            
             if(String(values[2]).endsWith('.js')){
               values[0] !== '-' && (v.added += parseInt(values[0]));
               values[1] !== '-' && values[1] !== '-' && (v.changes += Math.abs(parseInt(values[0]) - parseInt(values[1])));
               values[1] !== '-' &&  (v.removed += parseInt(values[1]));
             }
+          
          
             if (!uniqueFiles[values[2]]) {
               uniqueFiles[values[2]] = true;
