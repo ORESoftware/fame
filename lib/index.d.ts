@@ -1,1 +1,7 @@
-export declare const libraryName = "your lib name.";
+export interface LinesType {
+    added: number;
+    removed: number;
+    file: string;
+    author: string;
+    diff: number;
+}
