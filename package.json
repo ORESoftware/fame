@@ -1,5 +1,5 @@
 {
-  "name": "typescript-library-skeleton",
+  "name": "fame",
   "version": "0.0.101",
   "description": "Semver-oriented TypeScript library skeleton.",
   "main": "lib/index.js",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ORESoftware/typescript-library-skeleton.git"
+    "url": "git+https://github.com/ORESoftware/fame.git"
   },
   "keywords": [
     "typescript",
@@ -21,9 +21,9 @@
   "author": "Olegzandr VD",
   "license": "SEE LICENSE IN LICENSE.md",
   "bugs": {
-    "url": "https://github.com/ORESoftware/typescript-library-skeleton/issues"
+    "url": "https://github.com/ORESoftware/fame/issues"
   },
-  "homepage": "https://github.com/ORESoftware/typescript-library-skeleton#readme",
+  "homepage": "https://github.com/ORESoftware/fame#readme",
   "devDependencies": {
     "@types/core-js": "^0.9.46",
     "@types/node": "^9.6.2"
