@@ -2,11 +2,13 @@
 
 # Fame
 
+This command line tool is similar to `git fame`, but this is <i>much</i> faster.
+People were complaining that the ruby/python tools were too slow, so I wrote this.
 
 ## Installation
 
 ```bash
-npm install fame -g
+$ npm install fame -g
 ```
 
 ## Usage
@@ -17,7 +19,7 @@ By default, a table is printed to the console. If you want JSON output, use the 
 fame --json
 ```
 
-### Info for all commits on master 
+### Info for all commits by "alex" on master 
 ```bash
 fame --author=alex
 ```
@@ -47,4 +49,7 @@ fame --extension=".js"
 ```
 
 
+<kbd>
+ <image src="https://raw.githubusercontent.com/oresoftware/fame/master/media/fame.png">
+</kbd>
 
