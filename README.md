@@ -48,14 +48,14 @@ fame --match="\.js"
 fame --extension=".js"
 ```
 
-# Command line table output looks like this:
+#### Command line table output looks like this:
 
 <kbd>
  <image src="https://raw.githubusercontent.com/oresoftware/fame/master/media/fame.png">
 </kbd>
 
 
-# Command line JSON output looks like this:
+#### Command line JSON output looks like this:
 
 <kbd>
  <image src="https://raw.githubusercontent.com/oresoftware/fame/master/media/fame-json.png">

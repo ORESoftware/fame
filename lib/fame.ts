@@ -229,7 +229,7 @@ async.autoInject({
     });
     
     if (opts.table || !opts.json) {
-      const str = table.toString().split('\n').map(v => '\t' + v).join('\n');
+      const str = table.toString().split('\n').map(v => '  ' + v).join('\n');
       console.log(str);
     }
     
