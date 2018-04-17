@@ -8,7 +8,7 @@ People were complaining that the ruby/python tools were too slow, so I wrote thi
 ## Installation
 
 ```bash
-$ npm install fame -g
+$ npm install @oresoftware/fame -g
 ```
 
 ## Usage
