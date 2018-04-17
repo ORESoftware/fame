@@ -5,11 +5,12 @@
 This command line tool is similar to `git fame`, but this is <i>much</i> faster.
 People were complaining that the ruby/python tools were too slow, so I wrote this.
 
-## Installation
+## <span style="color:red">*Installation*</span>
 
 ```bash
 $ npm install @oresoftware/fame -g
 ```
+
 
 ## Usage
 
