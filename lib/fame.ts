@@ -15,6 +15,7 @@ import _ = require('lodash');
 //project
 import {createParser} from './parser';
 import {cliOptions} from './cli-options';
+import {log} from './logger';
 const Table = require('cli-table');
 const table = new Table({
   // colWidths: [200, 100, 100, 100, 100, 100, 100],
@@ -37,8 +38,8 @@ export interface AuthorType {
 const getNewAuthor = function (auth: string): AuthorType {
   return {
     author: auth,
-    commits: 0,
     files: 0,
+    commits: 0,
     added: 0,
     removed: 0,
     changes: 0,
@@ -48,11 +49,13 @@ const getNewAuthor = function (auth: string): AuthorType {
 };
 
 const branch = opts.branch;
-console.log('Branch:', branch);
-const exts = _.flattenDeep(opts.extensions).filter(v => v);
-console.log('File extensions:', exts.length > 0 ? exts : '(all files)');
-const regex = _.flattenDeep(opts.regex).filter(v => v).map(v => new RegExp(v));
-console.log('File regex:', regex.length ? regex : '(all files)');
+log.info('Branch:', branch);
+const exts = _.flattenDeep(opts.extensions).filter(v => v).map(v => String(v).trim());
+exts.length && log.info('File extensions must be in:', exts);
+const matches = _.flattenDeep(opts.match).filter(v => v).map(v => new RegExp(String(v).trim()));
+matches.length && log.info('Files must match:', matches);
+const nonMatches = _.flattenDeep(opts.not_match).filter(v => v).map(v => new RegExp(String(v).trim()));
+nonMatches.length && log.info('Files must not match:', nonMatches);
 
 const doesFileMatch = function (f: string) {
   if (exts.length < 1) {
@@ -64,10 +67,19 @@ const doesFileMatch = function (f: string) {
 };
 
 const doesFileMatchRegex = function (f: string) {
-  if (regex.length < 1) {
+  if (matches.length < 1) {
     return true;
   }
-  return regex.some(function (ext) {
+  return matches.some(function (ext) {
+    return ext.test(f);
+  });
+};
+
+const doesFileNotMatchRegex = function (f: string) {
+  if (nonMatches.length < 1) {
+    return true;
+  }
+  return !nonMatches.some(function (ext) {
     return ext.test(f);
   });
 };
@@ -101,7 +113,7 @@ async.autoInject({
       k.stdout.pipe(p).on('data', function (d: string) {
         
         const values = String(d).split(/\s+/g);
-        // console.log('newline values:', values);
+        // log.info('newline values:', values);
         
         if (values[0]) {
           
@@ -121,12 +133,9 @@ async.autoInject({
             
             const dfm = doesFileMatch(f);
             const dfmr = doesFileMatchRegex(f);
+            const dfmnm = doesFileNotMatchRegex(f);
             
-            console.log('file:', f);
-            console.log('dfm:', dfm);
-            console.log('dfmr:', dfmr);
-            
-            if (dfm && dfmr) {
+            if (dfm && dfmr && dfmnm) {
               values[0] !== '-' && (v.added += parseInt(values[0]));
               values[1] !== '-' && values[1] !== '-' && (v.changes += Math.abs(parseInt(values[0]) - parseInt(values[1])));
               values[1] !== '-' && (v.removed += parseInt(values[1]));
@@ -150,7 +159,7 @@ async.autoInject({
             readline.clearLine(process.stdout, 0);  // clear current text
             readline.cursorTo(process.stdout, 0);  // move cursor to beginning of line
             
-            process.stdout.write('processing commit: ' + commitNumber++);
+            process.stdout.write('fame: processing commit: ' + commitNumber++);
             
             results[currentAuthor].commits++;
           }
@@ -191,7 +200,8 @@ async.autoInject({
     });
     
     if (opts.table || !opts.json) {
-      console.log(table.toString());
+      const str = table.toString().split('\n').map(v => '\t' + v).join('\n');
+      console.log(str);
     }
     
     console.log('\n');

@@ -38,11 +38,20 @@ export const cliOptions = [
   
   {
     // `names` or a single `name`. First element is the `opts.KEY`.
-    names: ['regex'],
+    names: ['match'],
     // See "Option specs" below for types.
     type: 'arrayOfString',
     help: 'Which file extensions to include.',
     default: ['\.*']
+  },
+  
+  {
+    // `names` or a single `name`. First element is the `opts.KEY`.
+    names: ['not-match'],
+    // See "Option specs" below for types.
+    type: 'arrayOfString',
+    help: 'Which file extensions to exclude.',
+    default: []
   },
   
   {
