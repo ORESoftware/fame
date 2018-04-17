@@ -33,8 +33,28 @@ export interface AuthorType {
   removed: number,
   author: string,
   files: number,
-  uniqueFiles: { [key: string]: boolean }
+  uniqueFiles: { [key: string]: boolean },
+  totals?: {
+    added: number,
+    removed: number,
+    files: number,
+    commits: number,
+    changed: number
+  }
 }
+
+
+// echo '<h1>hello, world</h1>' | /Applications/Firefox.app/Contents/MacOS/firefox /dev/fd/0
+// echo '<h1>hello, world</h1>' | "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" /dev/fd/0
+
+
+// download:
+// https://ftp.mozilla.org/pub/firefox/releases/6.0.1/source/firefox-6.0.1.source.tar.bz2
+
+// unzip:
+// bzip2 -d firefox-6.0.1.source.tar.bz2
+
+
 
 const getNewAuthor = function (auth: string): AuthorType {
   return {
@@ -45,7 +65,7 @@ const getNewAuthor = function (auth: string): AuthorType {
     removed: 0,
     changes: 0,
     overall: 0,
-    uniqueFiles: {}
+    uniqueFiles: {},
   }
 };
 
@@ -102,9 +122,11 @@ async.autoInject({
       k.once('exit', function (code) {
         if (code > 0) {
           console.error(`Branch with name "${branch}" does not exist locally.`);
-          return process.exit(1);
+          process.exit(1);
         }
-        cb(null, true);
+        else {
+          cb(null, true);
+        }
       });
     },
     
@@ -120,9 +142,11 @@ async.autoInject({
       k.once('exit', function (code) {
         if (code > 0) {
           console.error(`Could not get commit count for branch => "${branch}".`);
-          return process.exit(1);
+          process.exit(1);
         }
-        cb(null, Number.parseInt(stdout));
+        else {
+          cb(null, Number.parseInt(stdout));
+        }
       });
     },
     
@@ -131,16 +155,27 @@ async.autoInject({
       const k = cp.spawn('bash');
       const p = createParser();
       
-      const getPercentage = function(){
-        return ((commitNumber/getCommitCount) * 100).toFixed(2);
-      };
-      
       k.stdin.write(`git log ${branch} ${getAuthor()} --numstat --pretty="%ae"`);
       k.stdin.end('\n');
       
       const results = {} as { [key: string]: AuthorType };
       let currentAuthor = '';
       let commitNumber = 1;
+      
+      const getPercentage = function () {
+        return ((commitNumber / getCommitCount) * 100).toFixed(2);
+      };
+      
+      const uniqueFiles = {} as { [key: string]: true };
+      
+      const totals = {
+        added: 0,
+        changed: 0,
+        removed: 0,
+        files: 0,
+        overall: 0,
+        commits: getCommitCount
+      };
       
       k.stdout.pipe(p).on('data', function (d: string) {
         
@@ -168,13 +203,51 @@ async.autoInject({
             const dfmnm = doesFileNotMatchRegex(f);
             
             if (dfm && dfmr && dfmnm) {
-              values[0] !== '-' && (v.added += parseInt(values[0]));
-              values[1] !== '-' && values[1] !== '-' && (v.changes += Math.abs(parseInt(values[0]) - parseInt(values[1])));
-              values[1] !== '-' && (v.removed += parseInt(values[1]));
+              
+              let added: number, changed: number, removed: number, overall: number;
+              
+              {
+                values[0] !== '-'
+                && (added = parseInt(values[0]))
+                && Number.isInteger(added)
+                && (v.added += added)
+                && (totals.added += added);
+              }
+              
+              {
+                values[0] !== '-'
+                && values[1] !== '-'
+                && (changed = parseInt(values[0]) + parseInt(values[1]))
+                && Number.isInteger(changed)
+                && (v.changes += changed)
+                && (totals.changed += changed);
+              }
+  
+              {
+                values[0] !== '-'
+                && values[1] !== '-'
+                && (overall = parseInt(values[0]) - parseInt(values[1]))
+                && Number.isInteger(overall)
+                && (v.overall += overall)
+                && (totals.overall += overall);
+              }
+              
+              {
+                values[1] !== '-'
+                && (removed = parseInt(values[1]))
+                && Number.isInteger(removed)
+                && (v.removed += removed)
+                && (totals.removed += removed);
+              }
               
               if (!v.uniqueFiles[f]) {
                 v.uniqueFiles[f] = true;
                 v.files++;
+              }
+              
+              if (!uniqueFiles[f]) {
+                uniqueFiles[f] = true;
+                totals.files++;
               }
             }
             
@@ -187,7 +260,7 @@ async.autoInject({
             }
             
             readline.clearLine(process.stdout, 0);  // clear current text
-            readline.cursorTo(process.stdout, 0);  // move cursor to beginning of line
+            readline.cursorTo(process.stdout, 0);   // move cursor to beginning of line
             process.stdout.write(`${chalk.bold('fame:')} processing commit no.: ${commitNumber}, finished: ${getPercentage()}%`);
             commitNumber++;
             results[currentAuthor].commits++;
@@ -203,7 +276,22 @@ async.autoInject({
       .once('end', function () {
         // v.overall = v.added - v.removed;
         this.removeAllListeners();
-        cb(null, results);
+        
+        const mapped = {} as { [key: string]: any };
+        
+        Object.keys(results).forEach(function (k: string) {
+          const v = results[k], z = mapped[k] = {} as any;
+          v.totals = totals;
+          z.author = v.author;
+          z.files = [v.files, '/', `${(100 * v.files / totals.files).toFixed(2)}%`].join(' ');
+          z.commits = [v.commits, '/', `${(100 * v.commits / getCommitCount).toFixed(2)}%`].join(' ');
+          z.added = v.added;
+          z.removed = v.removed;
+          z.changes = v.changes;
+          z.overall = v.overall;
+        });
+        
+        cb(null, {mapped, byAuth: results});
       });
       
     }
@@ -215,15 +303,17 @@ async.autoInject({
     
     console.log('\n');
     
-    Object.keys(results.getValuesByAuthor).forEach(function (k) {
+    const {mapped, byAuth} = results.getValuesByAuthor;
+    
+    Object.keys(byAuth).forEach(function (k) {
       
-      delete results.getValuesByAuthor[k].uniqueFiles;
+      delete byAuth[k].uniqueFiles;
       if (opts.json) {
-        JSONStdio.logToStdout(results.getValuesByAuthor[k]);
+        JSONStdio.logToStdout(byAuth[k]);
       }
       
       if (opts.table || !opts.json) {
-        table.push(Object.values(results.getValuesByAuthor[k]));
+        table.push(Object.values(mapped[k]));
       }
       
     });

@@ -9,4 +9,11 @@ export interface AuthorType {
     uniqueFiles: {
         [key: string]: boolean;
     };
+    totals?: {
+        added: number;
+        removed: number;
+        files: number;
+        commits: number;
+        changed: number;
+    };
 }
