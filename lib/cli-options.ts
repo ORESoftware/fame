@@ -29,10 +29,19 @@ export const cliOptions = [
   
   {
     // `names` or a single `name`. First element is the `opts.KEY`.
-    names: ['extensions', 'extension', 'ext'],
+    names: ['extensions', 'extension', 'ext', 'endswith', 'ends-with'],
     // See "Option specs" below for types.
     type: 'arrayOfString',
     help: 'Which file extensions to include.',
+    default: []
+  },
+  
+  {
+    // `names` or a single `name`. First element is the `opts.KEY`.
+    names: ['author'],
+    // See "Option specs" below for types.
+    type: 'arrayOfString',
+    help: 'Which authors to include.',
     default: []
   },
   

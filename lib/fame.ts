@@ -16,10 +16,11 @@ import _ = require('lodash');
 import {createParser} from './parser';
 import {cliOptions} from './cli-options';
 import {log} from './logger';
+import chalk from "chalk";
 const Table = require('cli-table');
 const table = new Table({
   // colWidths: [200, 100, 100, 100, 100, 100, 100],
-  head: ['           Author             ', 'Files Modified Count', 'Commits', 'Added Lines', 'Removed Lines', 'Changes', 'Overall']
+  head: ['           Author             ', 'Files Modified', 'Commits', 'Added Lines', 'Removed Lines', 'Changes', 'Overall']
 });
 
 const opts = dashdash.parse({options: cliOptions});
@@ -48,13 +49,15 @@ const getNewAuthor = function (auth: string): AuthorType {
   }
 };
 
+const authors = _.flattenDeep([opts.author]).filter(v => v).map(v => String(v).trim());
+authors.length && log.info('Author must match at least one of:', authors);
 const branch = opts.branch;
 log.info('Branch:', branch);
-const exts = _.flattenDeep(opts.extensions).filter(v => v).map(v => String(v).trim());
-exts.length && log.info('File extensions must be in:', exts);
-const matches = _.flattenDeep(opts.match).filter(v => v).map(v => new RegExp(String(v).trim()));
-matches.length && log.info('Files must match:', matches);
-const nonMatches = _.flattenDeep(opts.not_match).filter(v => v).map(v => new RegExp(String(v).trim()));
+const exts = _.flattenDeep([opts.extensions]).filter(v => v).map(v => String(v).trim());
+exts.length && log.info('Filenames must end with at least one of:', exts);
+const matches = _.flattenDeep([opts.match]).filter(v => v).map(v => new RegExp(String(v).trim()));
+matches.length && log.info('Files must match at least one of:', matches);
+const nonMatches = _.flattenDeep([opts.not_match]).filter(v => v).map(v => new RegExp(String(v).trim()));
 nonMatches.length && log.info('Files must not match:', nonMatches);
 
 const doesFileMatch = function (f: string) {
@@ -84,6 +87,13 @@ const doesFileNotMatchRegex = function (f: string) {
   });
 };
 
+const getAuthor = function () {
+  return authors.map(function (a) {
+    return `--author=${a}`
+  })
+  .join(' ');
+};
+
 async.autoInject({
     
     checkIfBranchExists: function (cb: Function) {
@@ -98,12 +108,34 @@ async.autoInject({
       });
     },
     
-    getValuesByAuthor: function (checkIfBranchExists: boolean, cb: Function) {
+    getCommitCount: function (cb: Function) {
+      // git rev-list --count master
+      
+      const k = cp.spawn('bash');
+      k.stdin.end(`git rev-list --count ${branch};\n`);
+      let stdout = '';
+      k.stdout.on('data', function (d) {
+        stdout += String(d);
+      });
+      k.once('exit', function (code) {
+        if (code > 0) {
+          console.error(`Could not get commit count for branch => "${branch}".`);
+          return process.exit(1);
+        }
+        cb(null, Number.parseInt(stdout));
+      });
+    },
+    
+    getValuesByAuthor: function (checkIfBranchExists: boolean, getCommitCount: number, cb: Function) {
       
       const k = cp.spawn('bash');
       const p = createParser();
       
-      k.stdin.write(`git log ${branch} --numstat --pretty="%ae"`);
+      const getPercentage = function(){
+        return ((commitNumber/getCommitCount) * 100).toFixed(2);
+      };
+      
+      k.stdin.write(`git log ${branch} ${getAuthor()} --numstat --pretty="%ae"`);
       k.stdin.end('\n');
       
       const results = {} as { [key: string]: AuthorType };
@@ -154,13 +186,10 @@ async.autoInject({
               results[currentAuthor] = getNewAuthor(currentAuthor);
             }
             
-            // process.stdout.write('+');
-            
             readline.clearLine(process.stdout, 0);  // clear current text
             readline.cursorTo(process.stdout, 0);  // move cursor to beginning of line
-            
-            process.stdout.write('fame: processing commit: ' + commitNumber++);
-            
+            process.stdout.write(`${chalk.bold('fame:')} processing commit no.: ${commitNumber}, finished: ${getPercentage()}%`);
+            commitNumber++;
             results[currentAuthor].commits++;
           }
           
