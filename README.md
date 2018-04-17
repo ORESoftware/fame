@@ -7,6 +7,8 @@ People were complaining that the ruby/python tools were too slow, so I wrote thi
 
 ## <span style="color:red">*Installation*</span>
 
+<span style="color:red">*Installation*</span>
+
 ```bash
 $ npm install @oresoftware/fame -g
 ```
