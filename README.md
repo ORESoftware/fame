@@ -3,7 +3,7 @@
 # Fame
 
 ```diff
-- Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame
+- Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame
 ```
 
 This command line tool is similar to `git fame`, but this is <i>much</i> faster.
