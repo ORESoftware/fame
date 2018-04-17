@@ -2,19 +2,21 @@
 
 # Fame
 
+```diff
++ Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame
+```
+
 This command line tool is similar to `git fame`, but this is <i>much</i> faster.
 People were complaining that the ruby/python tools were too slow, so I wrote this.
 
-## <span style="color:red">*Installation*</span>
-
-<span style="color:red">*Installation*</span>
+## <i>Installation</i>
 
 ```bash
 $ npm install @oresoftware/fame -g
 ```
 
 
-## Usage
+## <i>Usage</i>
 
 By default, a table is printed to the console. If you want JSON output, use the --json flag.
 
