@@ -1,6 +1,6 @@
 {
   "name": "@oresoftware/fame",
-  "version": "0.0.101",
+  "version": "0.0.102",
   "description": "Semver-oriented TypeScript library skeleton.",
   "bin": {
     "fame": "lib/fame.js",
