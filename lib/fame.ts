@@ -43,18 +43,14 @@ export interface AuthorType {
   }
 }
 
-
 // echo '<h1>hello, world</h1>' | /Applications/Firefox.app/Contents/MacOS/firefox /dev/fd/0
 // echo '<h1>hello, world</h1>' | "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" /dev/fd/0
-
 
 // download:
 // https://ftp.mozilla.org/pub/firefox/releases/6.0.1/source/firefox-6.0.1.source.tar.bz2
 
 // unzip:
 // bzip2 -d firefox-6.0.1.source.tar.bz2
-
-
 
 const getNewAuthor = function (auth: string): AuthorType {
   return {
@@ -116,12 +112,26 @@ const getAuthor = function () {
 
 async.autoInject({
     
+    // checkIfBranchExists: function (cb: Function) {
+    //   const k = cp.spawn('bash');
+    //   k.stdin.end(`git show-ref --quiet refs/heads/${branch};\n`);
+    //   k.once('exit', function (code) {
+    //     if (code > 0) {
+    //       console.error(`Branch with name "${branch}" does not exist locally.`);
+    //       process.exit(1);
+    //     }
+    //     else {
+    //       cb(null, true);
+    //     }
+    //   });
+    // },
+    
     checkIfBranchExists: function (cb: Function) {
       const k = cp.spawn('bash');
-      k.stdin.end(`git show-ref --quiet refs/heads/${branch};\n`);
+      k.stdin.end(`git show  ${branch};\n`);
       k.once('exit', function (code) {
         if (code > 0) {
-          console.error(`Branch with name "${branch}" does not exist locally.`);
+          console.error(`Branch/sha with name "${branch}" does not exist locally.`);
           process.exit(1);
         }
         else {
@@ -222,7 +232,7 @@ async.autoInject({
                 && (v.changes += changed)
                 && (totals.changed += changed);
               }
-  
+              
               {
                 values[0] !== '-'
                 && values[1] !== '-'
@@ -319,7 +329,7 @@ async.autoInject({
     });
     
     if (opts.table || !opts.json) {
-      const str = table.toString().split('\n').map(v => '  ' + v).join('\n');
+      const str = table.toString().split('\n').map((v:string) => '  ' + v).join('\n');
       console.log(str);
     }
     

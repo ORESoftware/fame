@@ -20,7 +20,7 @@ export const cliOptions = [
   
   {
     // `names` or a single `name`. First element is the `opts.KEY`.
-    names: ['branch'],
+    names: ['branch', 'sha'],
     // See "Option specs" below for types.
     type: 'string',
     default: 'master',
