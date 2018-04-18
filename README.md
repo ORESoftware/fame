@@ -1,6 +1,6 @@
 
 
-# &#2728; Fame &#2728;
+# 🎟 Fame - a tool for displaying git log information 🎟
 
 ```diff
 - Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame
