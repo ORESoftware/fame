@@ -67,8 +67,8 @@ const getNewAuthor = function (auth: string): AuthorType {
 
 const authors = _.flattenDeep([opts.author]).filter(v => v).map(v => String(v).trim());
 authors.length && log.info('Author must match at least one of:', authors);
-const branch = opts.branch;
-log.info('Branch:', branch);
+const branch = opts.branch || opts._args[0] || 'master';
+log.info('SHA/Branch:', branch);
 const exts = _.flattenDeep([opts.extensions]).filter(v => v).map(v => String(v).trim());
 exts.length && log.info('Filenames must end with at least one of:', exts);
 const matches = _.flattenDeep([opts.match]).filter(v => v).map(v => new RegExp(String(v).trim()));
@@ -112,26 +112,12 @@ const getAuthor = function () {
 
 async.autoInject({
     
-    // checkIfBranchExists: function (cb: Function) {
-    //   const k = cp.spawn('bash');
-    //   k.stdin.end(`git show-ref --quiet refs/heads/${branch};\n`);
-    //   k.once('exit', function (code) {
-    //     if (code > 0) {
-    //       console.error(`Branch with name "${branch}" does not exist locally.`);
-    //       process.exit(1);
-    //     }
-    //     else {
-    //       cb(null, true);
-    //     }
-    //   });
-    // },
-    
     checkIfBranchExists: function (cb: Function) {
       const k = cp.spawn('bash');
-      k.stdin.end(`git show  ${branch};\n`);
+      k.stdin.end(`git show ${branch};\n`);
       k.once('exit', function (code) {
         if (code > 0) {
-          console.error(`Branch/sha with name "${branch}" does not exist locally.`);
+          log.error(`Branch/sha with name "${branch}" does not exist locally.`);
           process.exit(1);
         }
         else {
@@ -151,7 +137,7 @@ async.autoInject({
       });
       k.once('exit', function (code) {
         if (code > 0) {
-          console.error(`Could not get commit count for branch => "${branch}".`);
+          log.error(`Could not get commit count for branch => "${branch}".`);
           process.exit(1);
         }
         else {
@@ -329,7 +315,7 @@ async.autoInject({
     });
     
     if (opts.table || !opts.json) {
-      const str = table.toString().split('\n').map((v:string) => '  ' + v).join('\n');
+      const str = table.toString().split('\n').map((v: string) => '  ' + v).join('\n');
       console.log(str);
     }
     

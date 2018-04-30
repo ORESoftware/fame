@@ -23,7 +23,7 @@ export const cliOptions = [
     names: ['branch', 'sha'],
     // See "Option specs" below for types.
     type: 'string',
-    default: 'master',
+    default: '',
     help: 'Git branch to inspect, defaults to "master" branch.'
   },
   

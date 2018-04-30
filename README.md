@@ -12,7 +12,7 @@ People were complaining that the ruby/python tools were too slow, so I wrote thi
 ## <i>Installation</i>
 
 ```bash
-$ npm install @oresoftware/fame -g
+$ npm install fame -g
 ```
 
 

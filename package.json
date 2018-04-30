@@ -1,7 +1,7 @@
 {
   "name": "fame",
   "version": "0.0.104",
-  "description": "Semver-oriented TypeScript library skeleton.",
+  "description": "Provides git committer stats via command line.",
   "bin": {
     "fame": "lib/fame.js",
     "fame2": "lib/index.js"
