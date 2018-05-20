@@ -1,10 +1,16 @@
+
+### folders
 node_modules
 scripts
 test
 .idea
 .vscode
+lib
+media
+
+### matching
 *.log
 *.md
 *.json
-*.DS_Store
+*.tgz
 

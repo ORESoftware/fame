@@ -1,6 +1,5 @@
 
-
-# 🎟 Fame - a tool for displaying git log information 🎟
+## 🎟 Fame - a tool for displaying git log information by author
 
 ```diff
 - Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame Fame
@@ -12,7 +11,7 @@ People were complaining that the ruby/python tools were too slow, so I wrote thi
 ## <i>Installation</i>
 
 ```bash
-$ npm install fame -g
+$ npm install -g fame
 ```
 
 

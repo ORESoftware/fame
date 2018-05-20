@@ -10,7 +10,6 @@ import async = require('async');
 import cp = require('child_process');
 const dashdash = require('dashdash');
 import JSONStdio = require('json-stdio');
-import _ = require('lodash');
 
 //project
 import {createParser} from './parser';
@@ -22,6 +21,10 @@ const table = new Table({
   // colWidths: [200, 100, 100, 100, 100, 100, 100],
   head: ['           Author             ', 'Files Modified', 'Commits', 'Added Lines', 'Removed Lines', 'Changes', 'Overall']
 });
+
+const flattenDeep = function (a: Array<any>): Array<any> {
+  return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
+};
 
 const opts = dashdash.parse({options: cliOptions});
 
@@ -45,10 +48,8 @@ export interface AuthorType {
 
 // echo '<h1>hello, world</h1>' | /Applications/Firefox.app/Contents/MacOS/firefox /dev/fd/0
 // echo '<h1>hello, world</h1>' | "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" /dev/fd/0
-
 // download:
 // https://ftp.mozilla.org/pub/firefox/releases/6.0.1/source/firefox-6.0.1.source.tar.bz2
-
 // unzip:
 // bzip2 -d firefox-6.0.1.source.tar.bz2
 
@@ -65,15 +66,15 @@ const getNewAuthor = function (auth: string): AuthorType {
   }
 };
 
-const authors = _.flattenDeep([opts.author]).filter(v => v).map(v => String(v).trim());
+const authors = flattenDeep([opts.author]).filter(v => v).map(v => String(v).trim());
 authors.length && log.info('Author must match at least one of:', authors);
 const branch = opts.branch || opts._args[0] || 'master';
 log.info('SHA/Branch:', branch);
-const exts = _.flattenDeep([opts.extensions]).filter(v => v).map(v => String(v).trim());
+const exts = flattenDeep([opts.extensions]).filter(v => v).map(v => String(v).trim());
 exts.length && log.info('Filenames must end with at least one of:', exts);
-const matches = _.flattenDeep([opts.match]).filter(v => v).map(v => new RegExp(String(v).trim()));
+const matches = flattenDeep([opts.match]).filter(v => v).map(v => new RegExp(String(v).trim()));
 matches.length && log.info('Files must match at least one of:', matches);
-const nonMatches = _.flattenDeep([opts.not_match]).filter(v => v).map(v => new RegExp(String(v).trim()));
+const nonMatches = flattenDeep([opts.not_match]).filter(v => v).map(v => new RegExp(String(v).trim()));
 nonMatches.length && log.info('Files must not match:', nonMatches);
 
 const doesFileMatch = function (f: string) {

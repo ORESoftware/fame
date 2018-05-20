@@ -1,4 +1,13 @@
+
+### folders
 .idea
 .vscode
 node_modules
+dist/*
+
+### matching
 *.log
+*.tgz
+
+### negation
+!dist/README.md
