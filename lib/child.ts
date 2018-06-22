@@ -1,3 +1,5 @@
+'use strict';
+
 import {createParser} from "./parser";
 import cp = require('child_process');
 import JSONStdio = require('json-stdio');
