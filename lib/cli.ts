@@ -8,6 +8,7 @@ import readline = require('readline');
 //npm
 import async = require('async');
 import cp = require('child_process');
+
 const dashdash = require('dashdash');
 import JSONStdio = require('json-stdio');
 
@@ -16,6 +17,8 @@ import {createParser} from './parser';
 import {cliOptions} from './cli-options';
 import {log} from './logger';
 import chalk from "chalk";
+import {EVCb} from './index';
+
 const Table = require('cli-table');
 const table = new Table({
   // colWidths: [200, 100, 100, 100, 100, 100, 100],
@@ -68,7 +71,7 @@ const getNewAuthor = function (auth: string): AuthorType {
 
 const authors = flattenDeep([opts.author]).filter(v => v).map(v => String(v).trim());
 authors.length && log.info('Author must match at least one of:', authors);
-const branch = opts.branch || opts._args[0] || 'master';
+const branch = opts.branch || opts._args[0] || 'HEAD';
 log.info('SHA/Branch:', branch);
 const exts = flattenDeep([opts.extensions]).filter(v => v).map(v => String(v).trim());
 exts.length && log.info('Filenames must end with at least one of:', exts);
@@ -113,53 +116,76 @@ const getAuthor = function () {
 
 async.autoInject({
     
-    checkIfBranchExists: function (cb: Function) {
+    checkIfBranchExists(getBranchName: string, cb: EVCb<boolean>) {
       const k = cp.spawn('bash');
-      k.stdin.end(`git show ${branch};\n`);
-      k.once('exit', function (code) {
+      k.stdin.end(`git show ${getBranchName};`);
+      k.once('exit', code => {
         if (code > 0) {
-          log.error(`Branch/sha with name "${branch}" does not exist locally.`);
-          process.exit(1);
+          log.error(`Branch/sha with name "${getBranchName}" does not exist locally.`);
         }
-        else {
-          cb(null, true);
-        }
+        cb(code, true);
       });
     },
     
-    getCommitCount: function (cb: Function) {
-      // git rev-list --count master
+    getBranchName(cb: EVCb<string>) {
       
       const k = cp.spawn('bash');
-      k.stdin.end(`git rev-list --count ${branch};\n`);
+      k.stdin.end(`git rev-parse --abbrev-ref ${branch};`);
+      
       let stdout = '';
-      k.stdout.on('data', function (d) {
-        stdout += String(d);
+      k.stdout.on('data', d => {
+        stdout += String(d || '').trim();
       });
-      k.once('exit', function (code) {
+      
+      k.once('exit', code => {
         if (code > 0) {
-          log.error(`Could not get commit count for branch => "${branch}".`);
-          process.exit(1);
+          log.error(`Branch/sha with name "${branch}" does not exist locally.`);
         }
-        else {
-          cb(null, Number.parseInt(stdout));
+        else{
+          log.info('Full branch name:', stdout);
         }
+        cb(code, stdout);
       });
     },
     
-    getValuesByAuthor: function (checkIfBranchExists: boolean, getCommitCount: number, cb: Function) {
+    getCommitCount(getBranchName: string, cb: EVCb<number>) {
+      
+      const k = cp.spawn('bash');
+      k.stdin.end(`git rev-list --count ${getBranchName};`);
+      
+      let stdout = '';
+      k.stdout.on('data', function (d) {
+        stdout += String(d || '').trim();
+      });
+      
+      k.once('exit', code => {
+        if (code > 0) {
+          log.error(`Could not get commit count for branch => "${getBranchName}".`);
+        }
+        
+        try {
+          cb(code, Number.parseInt(stdout));
+        }
+        catch (err) {
+          cb(err);
+        }
+        
+      });
+    },
+    
+    getValuesByAuthor(getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: Function) {
       
       const k = cp.spawn('bash');
       const p = createParser();
       
-      k.stdin.write(`git log ${branch} ${getAuthor()} --numstat --pretty="%ae"`);
+      k.stdin.write(`git log ${getBranchName} ${getAuthor()} --numstat --pretty="%ae"`);
       k.stdin.end('\n');
       
       const results = {} as { [key: string]: AuthorType };
       let currentAuthor = '';
       let commitNumber = 1;
       
-      const getPercentage = function () {
+      const getPercentage =  () => {
         return ((commitNumber / getCommitCount) * 100).toFixed(2);
       };
       
@@ -174,9 +200,9 @@ async.autoInject({
         commits: getCommitCount
       };
       
-      k.stdout.pipe(p).on('data', function (d: string) {
+      k.stdout.pipe(p).on('data', d => {
         
-        const values = String(d).split(/\s+/g);
+        const values = String(d || '').split(/\s+/g);
         // log.info('newline values:', values);
         
         if (values[0]) {
@@ -294,9 +320,12 @@ async.autoInject({
     }
   },
   
-  function (err, results) {
+  (err, results) => {
     
-    if (err) throw err;
+    if (err) {
+      log.error(err);
+      return process.exit(1);
+    }
     
     console.log('\n');
     
@@ -321,9 +350,5 @@ async.autoInject({
     }
     
     console.log('\n');
-    
-    setTimeout(function () {
-      process.exit(0);
-    }, 10);
     
   });
