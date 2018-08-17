@@ -1,6 +1,6 @@
 
 
-export const r2gSmokeTest = function () {
+export const r2gSmokeTest = async () => {
   return true;
 };
 
