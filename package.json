@@ -1,6 +1,6 @@
 {
   "name": "fame",
-  "version": "0.0.108",
+  "version": "0.0.109",
   "description": "Provides git committer stats via command line.",
   "bin": {
     "fame": "cli/fame.js"
@@ -39,5 +39,8 @@
     "cli-table": "^0.3.1",
     "dashdash": "^1.14.1",
     "json-stdio": "latest"
+  },
+  "r2g": {
+    "test": "echo 'fame is all good'"
   }
 }
