@@ -2,12 +2,12 @@
 
 set -e;
 
-if [[ "$fame_skip_postinstall" == "yes" ]]; then
+if [[ "$skip_postinstall" == "yes" ]]; then
   echo "skipping fame postinstall routine.";
   exit 0;
 fi
 
-export fame_skip_postinstall="yes";
+export skip_postinstall="yes";
 
 if [[ "$oresoftware_local_dev" == "yes" ]]; then
     echo "Running the fame postinstall script in oresoftware local development env."
@@ -21,6 +21,11 @@ mkdir -p "$HOME/.oresoftware/bash" || {
 
 
 cat assets/shell.sh > "$HOME/.oresoftware/bash/fame.sh" || {
+  echo "Could not create oresoftware/bash/fame.sh file."
+  exit 1;
+}
+
+cat assets/completion.sh > "$HOME/.oresoftware/bash/fame.completion.sh" || {
   echo "Could not create oresoftware/bash/fame.sh file."
   exit 1;
 }

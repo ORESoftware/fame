@@ -14,7 +14,7 @@ import JSONStdio = require('json-stdio');
 
 //project
 import {createParser} from './parser';
-import {cliOptions} from './cli-options';
+import {CliOptions, cliOptions} from './cli-options';
 import {log} from './logger';
 import chalk from "chalk";
 import {EVCb} from './index';
@@ -29,7 +29,16 @@ const flattenDeep = function (a: Array<any>): Array<any> {
   return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
 };
 
-const opts = dashdash.parse({options: cliOptions});
+const opts = <CliOptions>dashdash.parse({options: cliOptions});
+
+if (opts.completion) {
+  const code = dashdash.bashCompletionFromOptions({
+    name: 'mycli',
+    options: cliOptions
+  });
+  console.log(code);
+  process.exit(0);
+}
 
 export interface AuthorType {
   commits: number,
@@ -69,11 +78,15 @@ const getNewAuthor = function (auth: string): AuthorType {
   }
 };
 
-const authors = flattenDeep([opts.author]).filter(v => v).map(v => String(v).trim());
+const mapAndFilter = (v: Array<any>): Array<any> => {
+  return v.map(v => String(v || '').trim()).filter(Boolean);
+};
+
+const authors = mapAndFilter(flattenDeep([opts.author])).map(v => String(v).trim());
 authors.length && log.info('Author must match at least one of:', authors);
 const branch = opts.branch || opts._args[0] || 'HEAD';
 log.info('SHA/Branch:', branch);
-const exts = flattenDeep([opts.extensions]).filter(v => v).map(v => String(v).trim());
+const exts = mapAndFilter(flattenDeep([opts.extensions, opts.endswith])).map(v => String(v).trim());
 exts.length && log.info('Filenames must end with at least one of:', exts);
 const matches = flattenDeep([opts.match]).filter(v => v).map(v => new RegExp(String(v).trim()));
 matches.length && log.info('Files must match at least one of:', matches);
@@ -128,7 +141,6 @@ async.autoInject({
     },
     
     getBranchName(cb: EVCb<string>) {
-      
       const k = cp.spawn('bash');
       k.stdin.end(`git rev-parse --abbrev-ref ${branch};`);
       
@@ -141,7 +153,7 @@ async.autoInject({
         if (code > 0) {
           log.error(`Branch/sha with name "${branch}" does not exist locally.`);
         }
-        else{
+        else {
           log.info('Full branch name:', stdout);
         }
         cb(code, stdout);
@@ -159,6 +171,7 @@ async.autoInject({
       });
       
       k.once('exit', code => {
+        
         if (code > 0) {
           log.error(`Could not get commit count for branch => "${getBranchName}".`);
         }
@@ -185,7 +198,7 @@ async.autoInject({
       let currentAuthor = '';
       let commitNumber = 1;
       
-      const getPercentage =  () => {
+      const getPercentage = () => {
         return ((commitNumber / getCommitCount) * 100).toFixed(2);
       };
       
@@ -203,92 +216,91 @@ async.autoInject({
       k.stdout.pipe(p).on('data', d => {
         
         const values = String(d || '').split(/\s+/g);
-        // log.info('newline values:', values);
         
-        if (values[0]) {
+        if (!values[0]) {
+          return;
+        }
+        
+        if (values[1] && values[2]) {
           
-          if (values[1] && values[2]) {
-            
-            const v = results[currentAuthor];
-            
-            if (!v) {
-              throw new Error('no available author with email:' + currentAuthor);
-            }
-            
-            const f = String(values[2]);
-            
-            if (f.startsWith('node_modules/') || f.startsWith('/node_modules/')) {
-              return;
-            }
-            
-            const dfm = doesFileMatch(f);
-            const dfmr = doesFileMatchRegex(f);
-            const dfmnm = doesFileNotMatchRegex(f);
-            
-            if (dfm && dfmr && dfmnm) {
-              
-              let added: number, changed: number, removed: number, overall: number;
-              
-              {
-                values[0] !== '-'
-                && (added = parseInt(values[0]))
-                && Number.isInteger(added)
-                && (v.added += added)
-                && (totals.added += added);
-              }
-              
-              {
-                values[0] !== '-'
-                && values[1] !== '-'
-                && (changed = parseInt(values[0]) + parseInt(values[1]))
-                && Number.isInteger(changed)
-                && (v.changes += changed)
-                && (totals.changed += changed);
-              }
-              
-              {
-                values[0] !== '-'
-                && values[1] !== '-'
-                && (overall = parseInt(values[0]) - parseInt(values[1]))
-                && Number.isInteger(overall)
-                && (v.overall += overall)
-                && (totals.overall += overall);
-              }
-              
-              {
-                values[1] !== '-'
-                && (removed = parseInt(values[1]))
-                && Number.isInteger(removed)
-                && (v.removed += removed)
-                && (totals.removed += removed);
-              }
-              
-              if (!v.uniqueFiles[f]) {
-                v.uniqueFiles[f] = true;
-                v.files++;
-              }
-              
-              if (!uniqueFiles[f]) {
-                uniqueFiles[f] = true;
-                totals.files++;
-              }
-            }
-            
-          }
-          else {
-            
-            currentAuthor = values[0];
-            if (!results[currentAuthor]) {
-              results[currentAuthor] = getNewAuthor(currentAuthor);
-            }
-            
-            readline.clearLine(process.stdout, 0);  // clear current text
-            readline.cursorTo(process.stdout, 0);   // move cursor to beginning of line
-            process.stdout.write(`${chalk.bold('fame:')} processing commit no.: ${commitNumber}, finished: ${getPercentage()}%`);
-            commitNumber++;
-            results[currentAuthor].commits++;
+          const v = results[currentAuthor];
+          
+          if (!v) {
+            throw new Error('no available author with email:' + currentAuthor);
           }
           
+          const f = String(values[2]);
+          
+          if (f.startsWith('node_modules/') || f.startsWith('/node_modules/')) {
+            return;
+          }
+          
+          const dfm = doesFileMatch(f);
+          const dfmr = doesFileMatchRegex(f);
+          const dfmnm = doesFileNotMatchRegex(f);
+          
+          if (dfm && dfmr && dfmnm) {
+            
+            let added: number, changed: number, removed: number, overall: number;
+            
+            {
+              values[0] !== '-'
+              && (added = parseInt(values[0]))
+              && Number.isInteger(added)
+              && (v.added += added)
+              && (totals.added += added);
+            }
+            
+            {
+              values[0] !== '-'
+              && values[1] !== '-'
+              && (changed = parseInt(values[0]) + parseInt(values[1]))
+              && Number.isInteger(changed)
+              && (v.changes += changed)
+              && (totals.changed += changed);
+            }
+            
+            {
+              values[0] !== '-'
+              && values[1] !== '-'
+              && (overall = parseInt(values[0]) - parseInt(values[1]))
+              && Number.isInteger(overall)
+              && (v.overall += overall)
+              && (totals.overall += overall);
+            }
+            
+            {
+              values[1] !== '-'
+              && (removed = parseInt(values[1]))
+              && Number.isInteger(removed)
+              && (v.removed += removed)
+              && (totals.removed += removed);
+            }
+            
+            if (!v.uniqueFiles[f]) {
+              v.uniqueFiles[f] = true;
+              v.files++;
+            }
+            
+            if (!uniqueFiles[f]) {
+              uniqueFiles[f] = true;
+              totals.files++;
+            }
+          }
+          
+        }
+        else {
+          
+          currentAuthor = values[0];
+          if (!results[currentAuthor]) {
+            results[currentAuthor] = getNewAuthor(currentAuthor);
+          }
+          
+          readline.clearLine(process.stdout, 0);  // clear current text
+          readline.cursorTo(process.stdout, 0);   // move cursor to beginning of line
+          process.stdout.write(`${chalk.bold('fame:')} processing commit no.: ${commitNumber}, finished: ${getPercentage()}%`);
+          commitNumber++;
+          results[currentAuthor].commits++;
         }
         
       })

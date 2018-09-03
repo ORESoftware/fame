@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-get_latest_fame(){
-  . "$HOME/.oresoftware/bash/fame.sh"
+fame_get_latest(){
+  . "$BASH_SOURCE";  # source this file
 }
 
 fame(){
@@ -18,7 +18,10 @@ fame(){
 
  fi
 
- command fame $@;
+ command "$FUNCNAME" "$@";
+
 }
 
+
 export -f fame;
+export -f fame_get_latest;

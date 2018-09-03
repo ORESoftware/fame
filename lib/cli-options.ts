@@ -11,7 +11,11 @@ export const cliOptions = [
     type: 'bool',
     help: 'Print this help and exit.'
   },
-  
+  {
+    names: ['completion'],
+    type: 'bool',
+    help: 'Print this help and exit.'
+  },
   {
     names: ['verbose', 'v'],
     type: 'arrayOfBool',
@@ -20,16 +24,24 @@ export const cliOptions = [
   
   {
     // `names` or a single `name`. First element is the `opts.KEY`.
-    names: ['branch', 'sha'],
+    names: ['branch', 'sha', 'b'],
     // See "Option specs" below for types.
     type: 'string',
     default: '',
-    help: 'Git branch to inspect, defaults to "master" branch.'
+    help: 'Git branch/sha to inspect, defaults to "HEAD".'
   },
   
   {
     // `names` or a single `name`. First element is the `opts.KEY`.
-    names: ['extensions', 'extension', 'ext', 'endswith', 'ends-with'],
+    names: ['extensions', 'extension', 'ext'],
+    // See "Option specs" below for types.
+    type: 'arrayOfString',
+    help: 'Which file extensions to include.',
+    default: []
+  },
+  
+  {
+    names: ['endswith', 'ends-with'],
     // See "Option specs" below for types.
     type: 'arrayOfString',
     help: 'Which file extensions to include.',
@@ -80,3 +92,18 @@ export const cliOptions = [
   }
 
 ];
+
+
+export interface CliOptions {
+  extensions: Array<string>,
+  endswith: Array<string>,
+  table: boolean,
+  json: boolean,
+  not_match: Array<string>,
+  match: Array<string>,
+  author: Array<string>,
+  branch: string,
+  verbose: Array<boolean>,
+  help: boolean,
+  completion: boolean
+}
