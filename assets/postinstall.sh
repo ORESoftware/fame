@@ -26,7 +26,7 @@ cat assets/shell.sh > "$HOME/.oresoftware/bash/fame.sh" || {
 }
 
 cat assets/completion.sh > "$HOME/.oresoftware/bash/fame.completion.sh" || {
-  echo "Could not create oresoftware/bash/fame.sh file."
+  echo "Could not create oresoftware/bash/fame.completion.sh file."
   exit 1;
 }
 

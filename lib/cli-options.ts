@@ -11,11 +11,13 @@ export const cliOptions = [
     type: 'bool',
     help: 'Print this help and exit.'
   },
+  
   {
     names: ['completion'],
     type: 'bool',
-    help: 'Print this help and exit.'
+    help: 'Print bash completion code to stdout.'
   },
+  
   {
     names: ['verbose', 'v'],
     type: 'arrayOfBool',
@@ -105,5 +107,6 @@ export interface CliOptions {
   branch: string,
   verbose: Array<boolean>,
   help: boolean,
-  completion: boolean
+  completion: boolean,
+  _args: Array<string>
 }

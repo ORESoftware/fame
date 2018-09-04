@@ -29,15 +29,24 @@ const flattenDeep = function (a: Array<any>): Array<any> {
   return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
 };
 
-const opts = <CliOptions>dashdash.parse({options: cliOptions});
+const allowUnknown = process.argv.includes('--allow-unknown');
+const parser = dashdash.createParser({options: cliOptions, allowUnknown});
+const opts = <CliOptions>parser.parse({options: cliOptions});
+
+if (opts.help) {
+  {
+    const help = parser.help({includeEnv: true}).trimRight();
+    console.log('usage: node foo.js [OPTIONS]\n' + 'options:\n' + help);
+    process.exit(0);
+  }
+}
 
 if (opts.completion) {
-  const code = dashdash.bashCompletionFromOptions({
-    name: 'mycli',
-    options: cliOptions
-  });
-  console.log(code);
-  process.exit(0);
+  {
+    const code = parser.bashCompletion({name: 'fame'});
+    console.log(code);
+    process.exit(0);
+  }
 }
 
 export interface AuthorType {
@@ -84,12 +93,16 @@ const mapAndFilter = (v: Array<any>): Array<any> => {
 
 const authors = mapAndFilter(flattenDeep([opts.author])).map(v => String(v).trim());
 authors.length && log.info('Author must match at least one of:', authors);
+
 const branch = opts.branch || opts._args[0] || 'HEAD';
 log.info('SHA/Branch:', branch);
+
 const exts = mapAndFilter(flattenDeep([opts.extensions, opts.endswith])).map(v => String(v).trim());
 exts.length && log.info('Filenames must end with at least one of:', exts);
+
 const matches = flattenDeep([opts.match]).filter(v => v).map(v => new RegExp(String(v).trim()));
 matches.length && log.info('Files must match at least one of:', matches);
+
 const nonMatches = flattenDeep([opts.not_match]).filter(v => v).map(v => new RegExp(String(v).trim()));
 nonMatches.length && log.info('Files must not match:', nonMatches);
 
@@ -186,7 +199,7 @@ async.autoInject({
       });
     },
     
-    getValuesByAuthor(getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: Function) {
+    getValuesByAuthor(getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: EVCb<any>) {
       
       const k = cp.spawn('bash');
       const p = createParser();
@@ -304,17 +317,12 @@ async.autoInject({
         }
         
       })
-      .once('error', function (err) {
-        this.removeAllListeners();
-        cb(err);
-      })
-      .once('end', function () {
-        // v.overall = v.added - v.removed;
-        this.removeAllListeners();
+      .once('error', cb)
+      .once('end', () => {
         
         const mapped = {} as { [key: string]: any };
         
-        Object.keys(results).forEach(function (k: string) {
+        Object.keys(results).forEach((k: string) => {
           const v = results[k], z = mapped[k] = {} as any;
           v.totals = totals;
           z.author = v.author;

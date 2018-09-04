@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Bash completion generated for 'mycli' at Mon Sep 03 2018 16:25:18 GMT-0700 (Pacific Daylight Time).
+# Bash completion generated for 'fame' at Mon Sep 03 2018 17:41:36 GMT-0700 (Pacific Daylight Time).
 #
 # The original template lives here:
 # https://github.com/trentm/node-dashdash/blob/master/etc/dashdash.bash_completion.in
@@ -71,12 +71,12 @@
 
 
 # Debugging this completion:
-#   1. Uncomment the "_mycli_log_file=..." line.
+#   1. Uncomment the "_fame_log_file=..." line.
 #   2. 'tail -f /var/tmp/dashdash-completion.log' in one terminal.
 #   3. Re-source this bash completion file.
-#_mycli_log=/var/tmp/dashdash-completion.log
+#_fame_log=/var/tmp/dashdash-completion.log
 
-function _mycli_completer {
+function _fame_completer {
 
     # ---- cmd definition
 
@@ -93,7 +93,7 @@ local cmd_optargs="--author=arrayOfString --branch=string --ends-with=arrayOfStr
     # ---- support functions
 
     function trace {
-        [[ -n "$_mycli_log" ]] && echo "$*" >&2
+        [[ -n "$_fame_log" ]] && echo "$*" >&2
     }
 
     function _dashdash_complete {
@@ -336,29 +336,29 @@ local cmd_optargs="--author=arrayOfString --branch=string --ends-with=arrayOfStr
 # Note: This if-block to help work with 'compdef' and 'compctl' is
 # adapted from 'npm completion'.
 if type complete &>/dev/null; then
-    function _mycli_completion {
+    function _fame_completion {
         local _log_file=/dev/null
-        [[ -z "$_mycli_log" ]] || _log_file="$_mycli_log"
+        [[ -z "$_fame_log" ]] || _log_file="$_fame_log"
         COMPREPLY=($(COMP_CWORD="$COMP_CWORD" \
             COMP_LINE="$COMP_LINE" \
             COMP_POINT="$COMP_POINT" \
-            _mycli_completer -- "${COMP_WORDS[@]}" \
+            _fame_completer -- "${COMP_WORDS[@]}" \
             2>$_log_file)) || return $?
     }
-    complete -o default -F _mycli_completion mycli
+    complete -o default -F _fame_completion fame
 elif type compdef &>/dev/null; then
-    function _mycli_completion {
+    function _fame_completion {
         local _log_file=/dev/null
-        [[ -z "$_mycli_log" ]] || _log_file="$_mycli_log"
+        [[ -z "$_fame_log" ]] || _log_file="$_fame_log"
         compadd -- $(COMP_CWORD=$((CURRENT-1)) \
             COMP_LINE=$BUFFER \
             COMP_POINT=0 \
-            _mycli_completer -- "${words[@]}" \
+            _fame_completer -- "${words[@]}" \
             2>$_log_file)
     }
-    compdef _mycli_completion mycli
+    compdef _fame_completion fame
 elif type compctl &>/dev/null; then
-    function _mycli_completion {
+    function _fame_completion {
         local cword line point words si
         read -Ac words
         read -cn cword
@@ -366,26 +366,26 @@ elif type compctl &>/dev/null; then
         read -l line
         read -ln point
         local _log_file=/dev/null
-        [[ -z "$_mycli_log" ]] || _log_file="$_mycli_log"
+        [[ -z "$_fame_log" ]] || _log_file="$_fame_log"
         reply=($(COMP_CWORD="$cword" \
             COMP_LINE="$line" \
             COMP_POINT="$point" \
-            _mycli_completer -- "${words[@]}" \
+            _fame_completer -- "${words[@]}" \
             2>$_log_file)) || return $?
     }
-    compctl -K _mycli_completion mycli
+    compctl -K _fame_completion fame
 fi
 
 
 ##
-## This is a Bash completion file for the 'mycli' command. You can install
+## This is a Bash completion file for the 'fame' command. You can install
 ## with either:
 ##
-##     cp FILE /usr/local/etc/bash_completion.d/mycli   # Mac
-##     cp FILE /etc/bash_completion.d/mycli             # Linux
+##     cp FILE /usr/local/etc/bash_completion.d/fame   # Mac
+##     cp FILE /etc/bash_completion.d/fame             # Linux
 ##
 ## or:
 ##
-##     cp FILE > ~/.mycli.completion
-##     echo "source ~/.mycli.completion" >> ~/.bashrc
+##     cp FILE > ~/.fame.completion
+##     echo "source ~/.fame.completion" >> ~/.bashrc
 ##
