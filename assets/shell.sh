@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+
+
+all_export="yep";
+
+if [[ ! "$SHELLOPTS" =~ "allexport" ]]; then
+    all_export="nope";
+    set -a;
+fi
+
+
+
 fame_get_latest(){
   . "$BASH_SOURCE";  # source this file
 }
@@ -23,5 +34,7 @@ fame(){
 }
 
 
-export -f fame;
-export -f fame_get_latest;
+if [ "$all_export" == "nope" ]; then
+  set +a;
+fi
+

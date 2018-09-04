@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Bash completion generated for 'fame' at Mon Sep 03 2018 17:41:36 GMT-0700 (Pacific Daylight Time).
+# Bash completion generated for 'fame' at Mon Sep 03 2018 17:47:15 GMT-0700 (Pacific Daylight Time).
 #
 # The original template lives here:
 # https://github.com/trentm/node-dashdash/blob/master/etc/dashdash.bash_completion.in
