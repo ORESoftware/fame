@@ -15,7 +15,7 @@ $ npm install -g fame
 ```
 
 
-## <i>Usage</i>
+## <i>Basic Usage</i>
 
 By default, a table is printed to the console. If you want JSON output, use the --json flag.
 
@@ -39,6 +39,7 @@ fame --branch=dev --author=alex
 fame --author=donnie --author=ronnie --author=jonnie
 ```
 
+-----
 
 ### More options
 
@@ -68,11 +69,9 @@ fame --sort='added lines, files modified' --order=asc
 
 </details>
 
-
------
+<br>
 
 <details>
-
 <summary class="text-primary mb-3">Matching on files (ignoring files too)</summary>
 
 <br>
@@ -96,7 +95,7 @@ fame --extension='.js'  # better to just use the regex option tho
 </details>
 
 
-
+<br>
 
 ## Command line table output looks like this:
 
