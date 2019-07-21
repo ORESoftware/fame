@@ -57,7 +57,7 @@ Or for example, instead of numbers you can also just use the name of the column:
 
 ```bash
 
-fame --sort='lines added,files modified' --order=asc
+fame --sort='added lines, files modified' --order=asc
 
 ```
 
