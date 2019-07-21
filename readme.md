@@ -40,7 +40,7 @@ fame --author=donnie --author=ronnie --author=jonnie
 ```
 
 
-### Sorting output
+### More options
 
 <details>
 <summary class="text-primary mb-3">Sorting with --order and --sort options</summary>
@@ -73,7 +73,7 @@ fame --sort='added lines, files modified' --order=asc
 
 <details>
 
-<summary class="text-primary mb-3">More options</summary>
+<summary class="text-primary mb-3">Matching on files (ignoring files too)</summary>
 
 <br>
 
@@ -88,7 +88,7 @@ fame --match='\.js'
 ### Info for all files that end with
 
 ```bash
-fame --extension='.js'
+fame --extension='.js'  # better to just use the regex option tho
 ```
 
 ----
@@ -98,14 +98,14 @@ fame --extension='.js'
 
 
 
-#### Command line table output looks like this:
+## Command line table output looks like this:
 
 <kbd>
  <image src="https://raw.githubusercontent.com/oresoftware/fame/master/media/fame.png">
 </kbd>
 
 
-#### Command line JSON output looks like this:
+## Command line JSON output looks like this:
 
 <kbd>
  <image src="https://raw.githubusercontent.com/oresoftware/fame/master/media/fame-json.png">
