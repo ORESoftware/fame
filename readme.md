@@ -92,6 +92,17 @@ fame --extension='.js'  # better to just use the regex option tho
 
 ----
 
+### Example
+
+To match all .ts files but no .d.ts files, you would do:
+
+```bash
+fame --match='\.ts$'  --not-match='\.d\.ts$'
+
+```
+
+Remember these strings are passed to `new RegExp()` so have to escpae the . etc.
+
 </details>
 
 

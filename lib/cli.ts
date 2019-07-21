@@ -115,10 +115,10 @@ log.info('SHA/Branch:', branch);
 const exts = mapAndFilter(flattenDeep([opts.extensions, opts.endswith])).map(v => String(v).trim());
 exts.length && log.info('Filenames must end with at least one of:', exts);
 
-const matches = flattenDeep([opts.match]).filter(v => v).map(v => new RegExp(String(v).trim()));
+const matches = flattenDeep([opts.match]).filter(Boolean).map(v => new RegExp(String(v).trim()));
 matches.length && log.info('Files must match at least one of:', matches);
 
-const nonMatches = flattenDeep([opts.not_match]).filter(v => v).map(v => new RegExp(String(v).trim()));
+const nonMatches = flattenDeep([opts.not_match]).filter(Boolean).map(v => new RegExp(String(v).trim()));
 nonMatches.length && log.info('Files must not match:', nonMatches);
 
 const doesFileMatch = function (f: string) {
