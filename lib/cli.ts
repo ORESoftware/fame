@@ -10,7 +10,7 @@ import async = require('async');
 import cp = require('child_process');
 
 const dashdash = require('dashdash');
-import JSONStdio = require('json-stdio');
+import stdio = require('json-stdio');
 
 //project
 import {createParser} from './parser';
@@ -22,8 +22,20 @@ import {EVCb} from './index';
 const Table = require('cli-table');
 const table = new Table({
   // colWidths: [200, 100, 100, 100, 100, 100, 100],
-  head: ['           Author             ', 'Files Modified', 'Commits', 'Added Lines', 'Removed Lines', 'Changes', 'Overall']
+  head: ['           Author             ', 'Files Modified', 'Commits', 'Added Lines', 'Removed Lines', 'Total Line Changes', 'Net Lines Added']
 });
+
+
+const sortByName = <any>{
+  'author': 0,
+  'filesmodified': 1,
+  'commits': 2,
+  'addedlines': 3,
+  'removedlines': 4,
+  'totallinechanges': 5,
+  'netlinesadded': 6
+};
+
 
 const flattenDeep = function (a: Array<any>): Array<any> {
   return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
@@ -48,6 +60,9 @@ if (opts.completion) {
     process.exit(0);
   }
 }
+
+const sortOrder = opts.order.toLowerCase().startsWith('asc') ? 'asc' : 'desc';
+
 
 export interface AuthorType {
   commits: number,
@@ -135,9 +150,9 @@ const doesFileNotMatchRegex = function (f: string) {
 
 const getAuthor = function () {
   return authors.map(function (a) {
-    return `--author=${a}`
-  })
-  .join(' ');
+      return `--author=${a}`
+    })
+    .join(' ');
 };
 
 async.autoInject({
@@ -165,8 +180,7 @@ async.autoInject({
       k.once('exit', code => {
         if (code > 0) {
           log.error(`Branch/sha with name "${branch}" does not exist locally.`);
-        }
-        else {
+        } else {
           log.info('Full branch name:', stdout);
         }
         cb(code, stdout);
@@ -191,8 +205,7 @@ async.autoInject({
         
         try {
           cb(code, Number.parseInt(stdout));
-        }
-        catch (err) {
+        } catch (err) {
           cb(err);
         }
         
@@ -227,82 +240,82 @@ async.autoInject({
       };
       
       k.stdout.pipe(p).on('data', d => {
-        
-        const values = String(d || '').split(/\s+/g);
-        
-        if (!values[0]) {
-          return;
-        }
-        
-        if (values[1] && values[2]) {
           
-          const v = results[currentAuthor];
+          const values = String(d || '').split(/\s+/g);
           
-          if (!v) {
-            throw new Error('no available author with email:' + currentAuthor);
-          }
-          
-          const f = String(values[2]);
-          
-          if (f.startsWith('node_modules/') || f.startsWith('/node_modules/')) {
+          if (!values[0]) {
             return;
           }
           
-          const dfm = doesFileMatch(f);
-          const dfmr = doesFileMatchRegex(f);
-          const dfmnm = doesFileNotMatchRegex(f);
-          
-          if (dfm && dfmr && dfmnm) {
+          if (values[1] && values[2]) {
             
-            let added: number, changed: number, removed: number, overall: number;
+            const v = results[currentAuthor];
             
-            {
-              values[0] !== '-'
-              && (added = parseInt(values[0]))
-              && Number.isInteger(added)
-              && (v.added += added)
-              && (totals.added += added);
+            if (!v) {
+              throw new Error('no available author with email:' + currentAuthor);
             }
             
-            {
-              values[0] !== '-'
-              && values[1] !== '-'
-              && (changed = parseInt(values[0]) + parseInt(values[1]))
-              && Number.isInteger(changed)
-              && (v.changes += changed)
-              && (totals.changed += changed);
+            const f = String(values[2]);
+            
+            if (f.startsWith('node_modules/') || f.startsWith('/node_modules/')) {
+              return;
             }
             
-            {
-              values[0] !== '-'
-              && values[1] !== '-'
-              && (overall = parseInt(values[0]) - parseInt(values[1]))
-              && Number.isInteger(overall)
-              && (v.overall += overall)
-              && (totals.overall += overall);
+            const dfm = doesFileMatch(f);
+            const dfmr = doesFileMatchRegex(f);
+            const dfmnm = doesFileNotMatchRegex(f);
+            
+            if (dfm && dfmr && dfmnm) {
+              
+              let added: number, changed: number, removed: number, overall: number;
+              
+              {
+                values[0] !== '-'
+                && (added = parseInt(values[0]))
+                && Number.isInteger(added)
+                && (v.added += added)
+                && (totals.added += added);
+              }
+              
+              {
+                values[0] !== '-'
+                && values[1] !== '-'
+                && (changed = parseInt(values[0]) + parseInt(values[1]))
+                && Number.isInteger(changed)
+                && (v.changes += changed)
+                && (totals.changed += changed);
+              }
+              
+              {
+                values[0] !== '-'
+                && values[1] !== '-'
+                && (overall = parseInt(values[0]) - parseInt(values[1]))
+                && Number.isInteger(overall)
+                && (v.overall += overall)
+                && (totals.overall += overall);
+              }
+              
+              {
+                values[1] !== '-'
+                && (removed = parseInt(values[1]))
+                && Number.isInteger(removed)
+                && (v.removed += removed)
+                && (totals.removed += removed);
+              }
+              
+              if (!v.uniqueFiles[f]) {
+                v.uniqueFiles[f] = true;
+                v.files++;
+              }
+              
+              if (!uniqueFiles[f]) {
+                uniqueFiles[f] = true;
+                totals.files++;
+              }
             }
             
-            {
-              values[1] !== '-'
-              && (removed = parseInt(values[1]))
-              && Number.isInteger(removed)
-              && (v.removed += removed)
-              && (totals.removed += removed);
-            }
-            
-            if (!v.uniqueFiles[f]) {
-              v.uniqueFiles[f] = true;
-              v.files++;
-            }
-            
-            if (!uniqueFiles[f]) {
-              uniqueFiles[f] = true;
-              totals.files++;
-            }
+            return;
           }
-          
-        }
-        else {
           
           currentAuthor = values[0];
           if (!results[currentAuthor]) {
@@ -314,28 +327,32 @@ async.autoInject({
           process.stdout.write(`${chalk.bold('fame:')} processing commit no.: ${commitNumber}, finished: ${getPercentage()}%`);
           commitNumber++;
           results[currentAuthor].commits++;
-        }
-        
-      })
-      .once('error', cb)
-      .once('end', () => {
-        
-        const mapped = {} as { [key: string]: any };
-        
-        Object.keys(results).forEach((k: string) => {
-          const v = results[k], z = mapped[k] = {} as any;
-          v.totals = totals;
-          z.author = v.author;
-          z.files = [v.files, '/', `${(100 * v.files / totals.files).toFixed(2)}%`].join(' ');
-          z.commits = [v.commits, '/', `${(100 * v.commits / getCommitCount).toFixed(2)}%`].join(' ');
-          z.added = v.added;
-          z.removed = v.removed;
-          z.changes = v.changes;
-          z.overall = v.overall;
+          
+          
+        })
+        .once('error', cb)
+        .once('end', () => {
+          
+          const mapped = {} as { [key: string]: any };
+          
+          for (const k of  Object.keys(results)) {
+            
+            const v = results[k];
+            const z = mapped[k] = {} as any;
+            
+            v.totals = totals;
+            z.author = v.author;
+            z.files = [v.files, '/', `${(100 * v.files / totals.files).toFixed(2)}%`].join(' ');
+            z.commits = [v.commits, '/', `${(100 * v.commits / getCommitCount).toFixed(2)}%`].join(' ');
+            z.added = v.added;
+            z.removed = v.removed;
+            z.changes = v.changes;
+            z.overall = v.overall;
+          }
+          
+          cb(null, {mapped, byAuth: results});
+          
         });
-        
-        cb(null, {mapped, byAuth: results});
-      });
       
     }
   },
@@ -347,24 +364,106 @@ async.autoInject({
       return process.exit(1);
     }
     
+    
     console.log('\n');
     
     const {mapped, byAuth} = results.getValuesByAuthor;
     
-    Object.keys(byAuth).forEach(function (k) {
+    const rows: Array<any> = [];
+    
+    for (const k of Object.keys(byAuth)) {
       
       delete byAuth[k].uniqueFiles;
+      
       if (opts.json) {
-        JSONStdio.logToStdout(byAuth[k]);
+        stdio.log(byAuth[k]);
       }
       
       if (opts.table || !opts.json) {
-        table.push(Object.values(mapped[k]));
+        rows.push(Object.values(mapped[k]));
       }
+    }
+    
+    
+    const cleaned = String(opts.sort || '').split(',')
+      .map(v => String(v || '').trim())
+      .filter(Boolean)
+      .map(v => String(v).toLowerCase().replace(/\s/g, ''));
+    
+    if(opts.sort && cleaned.length < 1){
+      log.warn('A --sort option was set, but apparently only had had empty space.');
+    }
+    
+    const sortListd = cleaned.map(v => {
+      
+      let num = null;
+      try {
+        num = Number.parseInt(v);
+      } catch (e) {
+      
+      }
+      
+      if (Number.isInteger(num)) {
+        return num;
+      }
+      
+      
+      if (v in sortByName) {
+        return sortByName[v];
+      }
+      
+      throw 'Could not find column number for: ' + v;
       
     });
     
+    
     if (opts.table || !opts.json) {
+      
+      
+      if (sortListd.length > 0) {
+        
+        rows.sort((a, b) => {
+          
+          for (let num of sortListd) {
+            
+            
+            let anum, bnum;
+            
+            if (num === 0) {
+              anum = String(a[num]).trim();
+              bnum = String(b[num]).trim();
+            } else {
+              anum = Number.parseInt(String(a[num]).trim().split(' ')[0]);
+              bnum = Number.parseInt(String(b[num]).trim().split(' ')[0]);
+            }
+            
+            
+            if (anum > bnum) {
+              if (sortOrder === 'desc') {
+                return -1;
+              }
+              return 1;
+            }
+            
+            if (bnum > anum) {
+              if (sortOrder === 'desc') {
+                return 1;
+              }
+              return -1
+            }
+            
+          }
+          
+          return 0;
+        });
+      }
+      
+      
+      for (const r of rows) {
+        table.push(r);
+      }
+      
+      
       const str = table.toString().split('\n').map((v: string) => '  ' + v).join('\n');
       console.log(str);
     }

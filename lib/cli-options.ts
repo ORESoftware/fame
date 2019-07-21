@@ -19,6 +19,20 @@ export const cliOptions = [
   },
   
   {
+    names: ['sort', 's'],
+    type: 'string',
+    help: 'Sort columns by name, comma separated, in order of priority. Use --asc or --desc to change direction.',
+    default: ''
+  },
+  
+  {
+    names: ['order'],
+    type: 'string',
+    help: 'Sort ascending, or descending. Default is descending. Use like --order=asc, --order=desc',
+    default: 'desc'
+  },
+  
+  {
     names: ['verbose', 'v'],
     type: 'arrayOfBool',
     help: 'Verbose output. Use multiple times for more verbose.'
@@ -97,6 +111,10 @@ export const cliOptions = [
 
 
 export interface CliOptions {
+  order: string,
+  sort: string,
+  asc: boolean,
+  desc: boolean,
   extensions: Array<string>,
   endswith: Array<string>,
   table: boolean,

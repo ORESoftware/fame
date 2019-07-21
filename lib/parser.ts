@@ -18,19 +18,19 @@ export const createParser = function () {
       if (lastLineData) {
         data = lastLineData + data;
       }
-      let lines = data.split('\n');
-      lastLineData = lines.splice(lines.length - 1, 1)[0];
-      lines.forEach(function (l) {
-        l && self.push(l);
-      });
+      const lines = data.split('\n');
+      lastLineData = lines.pop();
+      for (const l of lines) {
+        l && this.push(l);
+      }
       cb();
     },
     
     flush: function (cb) {
       if (lastLineData) {
         this.push(lastLineData);
+        lastLineData = '';
       }
-      lastLineData = '';
       cb();
     }
   });

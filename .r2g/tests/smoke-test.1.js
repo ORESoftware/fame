@@ -30,5 +30,16 @@ process.on('unhandledRejection', (reason, p) => {
 });
 
 
+const k = cp.spawn('bash');
+
+k.stdin.end('fame --sort=0 --order=asc');
+
+k.stdout.pipe(process.stdout);
+k.stderr.pipe(process.stderr);
+
+
+
+
+
 // your test goes here
 // assert.strictEqual(true, false, 'whoops');
