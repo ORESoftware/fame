@@ -45,6 +45,8 @@ fame --author=donnie --author=ronnie --author=jonnie
 <details>
 <summary class="text-primary mb-3">Sorting with --order and --sort options</summary>
 
+<br>
+
 You can sort using the --sort and --order options.
 
 For example:
@@ -67,17 +69,34 @@ fame --sort='added lines, files modified' --order=asc
 </details>
 
 
+-----
+
+<details>
+
+<summary class="text-primary mb-3">More options</summary>
+
+<br>
+
 ### Info for all matching files
 
 ```bash
-fame --match="\.js"
+fame --match='\.js'
 ```
+
+-----
 
 ### Info for all files that end with
 
 ```bash
-fame --extension=".js"
+fame --extension='.js'
 ```
+
+----
+
+</details>
+
+
+
 
 #### Command line table output looks like this:
 
