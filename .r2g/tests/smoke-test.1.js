@@ -38,6 +38,9 @@ k.stdout.pipe(process.stdout);
 k.stderr.pipe(process.stderr);
 
 
+k.once('exit', code => {
+  process.exit(0);
+});
 
 
 

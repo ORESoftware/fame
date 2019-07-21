@@ -40,6 +40,28 @@ fame --author=donnie --author=ronnie --author=jonnie
 ```
 
 
+### Sorting output
+
+You can sort using the --sort and --order options.
+
+For example:
+
+```bash
+
+fame --sort=1 --order=asc  # will sort by the the 2nd column, ascending
+fame --sort=2,3 --order=desc  # will sort by the the 3rd and 4th column, with the 3rd column the priority
+
+```
+
+Or for example, instead of numbers you can also just use the name of the column:
+
+```bash
+
+fame --sort='lines added,files modified' --order=asc
+
+```
+
+
 ### Info for all matching files
 
 ```bash
