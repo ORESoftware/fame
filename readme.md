@@ -23,7 +23,7 @@ By default, a table is printed to the console. If you want JSON output, use the 
 fame --json
 ```
 
-### Info for all commits by "alex" on master 
+### Info for all commits by "alex"  
 ```bash
 fame --author=alex
 ```
@@ -41,6 +41,9 @@ fame --author=donnie --author=ronnie --author=jonnie
 
 
 ### Sorting output
+
+<details>
+<summary class="text-primary mb-3">Sorting with --order and --sort options</summary>
 
 You can sort using the --sort and --order options.
 
@@ -60,6 +63,8 @@ Or for example, instead of numbers you can also just use the name of the column:
 fame --sort='added lines, files modified' --order=asc
 
 ```
+
+</details>
 
 
 ### Info for all matching files
