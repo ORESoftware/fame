@@ -14,7 +14,7 @@ People were complaining that the ruby/python tools were too slow, so I wrote thi
 $ npm install -g fame
 ```
 
-#### Latest version: `npm view fame version` (v0.0.112)
+#### For latest version, use: `npm view fame version`
 
 
 ## <i>Basic Usage</i>
