@@ -16,6 +16,20 @@ $ npm install -g fame
 
 #### For latest version, use: `npm view fame version`
 
+-----
+
+<br>
+
+<kbd>
+ <image src="https://raw.githubusercontent.com/oresoftware/fame/master/media/big.png">
+</kbd>
+
+
+<br>
+
+----
+
+<br>
 
 ## <i>Basic Usage</i>
 
@@ -32,6 +46,7 @@ fame --author=alex
 ```
 
 ### Info for all commits on dev branch by a particular author
+
 ```bash
 fame --branch=dev --author=alex
 ```
@@ -113,7 +128,7 @@ Remember these strings are passed to `new RegExp()` so have to escpae the . etc.
 
 <br>
 
-## Command line table output looks like this:
+## Basic command line table output looks like this:
 
 <kbd>
  <image src="https://raw.githubusercontent.com/oresoftware/fame/master/media/fame.png">
