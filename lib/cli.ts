@@ -121,38 +121,31 @@ matches.length && log.info('Files must match at least one of:', matches);
 const nonMatches = flattenDeep([opts.not_match]).filter(Boolean).map(v => new RegExp(String(v).trim()));
 nonMatches.length && log.info('Files must not match:', nonMatches);
 
+
 const doesFileMatch = function (f: string) {
   if (exts.length < 1) {
     return true;
   }
-  return exts.some(function (ext) {
-    return String(f).endsWith(ext);
-  });
+  return exts.some(ext => String(f).endsWith(ext));
 };
 
 const doesFileMatchRegex = function (f: string) {
   if (matches.length < 1) {
     return true;
   }
-  return matches.some(function (ext) {
-    return ext.test(f);
-  });
+  return matches.some(ext => ext.test(f));
 };
 
 const doesFileNotMatchRegex = function (f: string) {
   if (nonMatches.length < 1) {
     return true;
   }
-  return !nonMatches.some(function (ext) {
-    return ext.test(f);
-  });
+  return !nonMatches.some(ext => ext.test(f));
 };
 
+
 const getAuthor = function () {
-  return authors.map(function (a) {
-      return `--author=${a}`
-    })
-    .join(' ');
+  return authors.map(a => ` --author='${a}' `).join('');
 };
 
 async.autoInject({
@@ -170,7 +163,7 @@ async.autoInject({
     
     getBranchName(cb: EVCb<string>) {
       const k = cp.spawn('bash');
-      k.stdin.end(`git rev-parse --abbrev-ref ${branch};`);
+      k.stdin.end(`git rev-parse --abbrev-ref '${branch}';`);
       
       let stdout = '';
       k.stdout.on('data', d => {
@@ -190,7 +183,7 @@ async.autoInject({
     getCommitCount(getBranchName: string, cb: EVCb<number>) {
       
       const k = cp.spawn('bash');
-      k.stdin.end(`git rev-list --count ${getBranchName};`);
+      k.stdin.end(`git rev-list --count '${getBranchName}';`);
       
       let stdout = '';
       k.stdout.on('data', function (d) {
@@ -219,7 +212,7 @@ async.autoInject({
     getValuesByAuthor(getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: EVCb<any>) {
       
       const k = cp.spawn('bash');
-      k.stdin.write(`git log ${getBranchName} ${getAuthor()} --numstat --pretty="%ae"`);
+      k.stdin.write(`git log '${getBranchName}' ${getAuthor()} --no-merges --max-count=50000 --numstat --pretty="%ae"`);
       k.stdin.end('\n');
       
       const results = {} as { [key: string]: AuthorType };
@@ -254,7 +247,7 @@ async.autoInject({
             const v = results[currentAuthor];
             
             if (!v) {
-              throw new Error('no available author with email:' + currentAuthor);
+              throw new Error('No available author with email:' + currentAuthor);
             }
             
             const f = String(values[2]);
@@ -320,6 +313,7 @@ async.autoInject({
           }
           
           currentAuthor = values[0];
+          
           if (!results[currentAuthor]) {
             results[currentAuthor] = getNewAuthor(currentAuthor);
           }
@@ -402,7 +396,7 @@ async.autoInject({
       try {
         num = Number.parseInt(v);
       } catch (e) {
-         // ignore
+        // ignore
       }
       
       if (Number.isInteger(num)) {
