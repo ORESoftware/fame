@@ -212,7 +212,7 @@ async.autoInject({
     getValuesByAuthor(getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: EVCb<any>) {
       
       const k = cp.spawn('bash');
-      k.stdin.write(`git log '${getBranchName}' ${getAuthor()} --no-merges --max-count=50000 --numstat --pretty="%ae"`);
+      k.stdin.write(`git log '${getBranchName}' ${getAuthor()} --max-count=50000 --numstat --pretty="%ae"`);
       k.stdin.end('\n');
       
       const results = {} as { [key: string]: AuthorType };
