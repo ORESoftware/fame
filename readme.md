@@ -24,6 +24,7 @@ fame --json
 ```
 
 ### Info for all commits by "alex"  
+
 ```bash
 fame --author=alex
 ```
@@ -59,13 +60,15 @@ fame --sort=2,3 --order=desc  # will sort by the the 3rd and 4th column, with th
 
 ```
 
-Or for example, instead of numbers you can also just use the name of the column:
+Or for example, instead of numbers you can also just use the name (case-insensitive) of the column:
 
 ```bash
 
 fame --sort='added lines, files modified' --order=asc
 
 ```
+
+Comma-separated list, case-insensitive and whitespace-insensitive
 
 </details>
 

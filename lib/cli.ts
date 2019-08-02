@@ -203,11 +203,15 @@ async.autoInject({
           log.error(`Could not get commit count for branch => "${getBranchName}".`);
         }
         
+        let num = null;
+        
         try {
-          cb(code, Number.parseInt(stdout));
+          num = Number.parseInt(stdout);
         } catch (err) {
-          cb(err);
+          return cb(err);
         }
+        
+        cb(code, num);
         
       });
     },
@@ -215,8 +219,6 @@ async.autoInject({
     getValuesByAuthor(getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: EVCb<any>) {
       
       const k = cp.spawn('bash');
-      const p = createParser();
-      
       k.stdin.write(`git log ${getBranchName} ${getAuthor()} --numstat --pretty="%ae"`);
       k.stdin.end('\n');
       
@@ -239,7 +241,7 @@ async.autoInject({
         commits: getCommitCount
       };
       
-      k.stdout.pipe(p).on('data', d => {
+      k.stdout.pipe(createParser()).on('data', d => {
           
           const values = String(d || '').split(/\s+/g);
           
@@ -390,7 +392,7 @@ async.autoInject({
       .filter(Boolean)
       .map(v => String(v).toLowerCase().replace(/\s/g, ''));
     
-    if(opts.sort && cleaned.length < 1){
+    if (opts.sort && cleaned.length < 1) {
       log.warn('A --sort option was set, but apparently only had had empty space.');
     }
     
@@ -400,7 +402,7 @@ async.autoInject({
       try {
         num = Number.parseInt(v);
       } catch (e) {
-      
+         // ignore
       }
       
       if (Number.isInteger(num)) {

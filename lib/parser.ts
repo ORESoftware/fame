@@ -2,7 +2,6 @@
 
 import stream = require("stream");
 
-///////////////////////////////////////////////////////////////////
 
 export const createParser = function () {
   
@@ -12,7 +11,7 @@ export const createParser = function () {
     
     objectMode: true,
     
-    transform: function (chunk, encoding, cb) {
+    transform (chunk, encoding, cb) {
       let self = this;
       let data = String(chunk);
       if (lastLineData) {
@@ -26,7 +25,7 @@ export const createParser = function () {
       cb();
     },
     
-    flush: function (cb) {
+    flush (cb) {
       if (lastLineData) {
         this.push(lastLineData);
         lastLineData = '';
