@@ -59,8 +59,7 @@ if (opts.version) {
     const pkgJSON = require('../package.json');
     if (opts.json) {
       stdio.log({version: pkgJSON.version});
-    }
-    else {
+    } else {
       console.log(pkgJSON.version);
     }
     
@@ -116,8 +115,7 @@ if (opts._args.length > 0 && opts.branch) {
   process.exit(1);
 }
 
-const branch = opts.branch || opts._args[0] || 'HEAD';
-
+const branch = String(opts.branch || opts._args[0] || 'HEAD').trim();
 log.info('SHA/Branch:', branch);
 
 const exts = mapAndFilter(flattenDeep([opts.extensions, opts.endswith])).map(v => String(v).trim());
@@ -154,7 +152,7 @@ const getAuthor = function () {
   return authors.map(a => ` --author='${a}' `).join('');
 };
 
-const getStdio = (k: ChildProcess) => {
+const getStdio = (k: ChildProcess, trimStdout?: boolean) => {
   
   const v = {
     stdout: '',
@@ -162,7 +160,10 @@ const getStdio = (k: ChildProcess) => {
   };
   
   k.stdout.on('data', d => {
-    v.stdout += String(d || '').trim();
+    v.stdout += String(d || '');
+    if (trimStdout) {
+      v.stdout = v.stdout.trim();
+    }
   });
   
   k.stderr.on('data', d => {
@@ -174,28 +175,11 @@ const getStdio = (k: ChildProcess) => {
 
 async.autoInject({
     
-    checkIfBranchExists(getBranchName: string, cb: EVCb<boolean>) {
-      const k = cp.spawn('bash');
-      const cmd = `git show ${getBranchName};`;
-      k.stdin.end(cmd);
-      const v = getStdio(k);
-      k.once('exit', code => {
-        if (code > 0) {
-          log.error('The following command exited with a non-zero code:');
-          log.error(cmd);
-          let stderrMsg = v.stderr ? 'Here is the stderr: ' + v.stderr : '';
-          log.error(`Branch/sha with name "${getBranchName}" does not exist locally. Try a git fetch.`, stderrMsg);
-        }
-        cb(code, true);
-      });
-    },
-    
     getBranchName(cb: EVCb<string>) {
       const k = cp.spawn('bash');
-      
       const cmd = `git rev-parse --abbrev-ref '${branch}';`;
       k.stdin.end(cmd);
-      const v = getStdio(k);
+      const v = getStdio(k, true);
       
       k.once('exit', code => {
         if (code > 0) {
@@ -203,18 +187,36 @@ async.autoInject({
           log.error(cmd);
           let stderrMsg = v.stderr ? 'Here is the stderr: ' + v.stderr : '';
           log.error(`Perhaps branch/sha with name "${branch}" does not exist locally?`, stderrMsg);
-        }
-        else {
+        } else {
           log.info('Full branch name:', v.stdout);
         }
         cb(code, v.stdout);
       });
     },
     
+    checkIfBranchExists(getBranchName: string, cb: EVCb<boolean>) {
+      const k = cp.spawn('bash');
+      const bn = String(getBranchName || '').trim();
+      const cmd = `git show '${bn}';`;
+      k.stdin.end(cmd);
+      const v = getStdio(k);
+      k.once('exit', code => {
+        if (code > 0) {
+          log.error('The following command exited with a non-zero code:');
+          log.error(cmd);
+          let stderrMsg = v.stderr ? 'Here is the stderr: ' + v.stderr : '';
+          log.error(`Branch/sha with name "${bn}" does not exist locally. Try a git fetch.`, stderrMsg);
+        }
+        cb(code, true);
+      });
+    },
+    
     getCommitCount(getBranchName: string, cb: EVCb<number>) {
       
+      const bn = String(getBranchName || '').trim();
+      
       const k = cp.spawn('bash');
-      const cmd = `git rev-list --count '${getBranchName}';`;
+      const cmd = `git rev-list --count '${bn}';`;
       k.stdin.end(cmd);
       const v = getStdio(k);
       
@@ -224,15 +226,14 @@ async.autoInject({
           log.error('The following command exited with a non-zero code:');
           log.error(cmd);
           let stderrMsg = v.stderr ? 'Here is the stderr: ' + v.stderr : '';
-          log.error(`Could not get commit count for branch => "${getBranchName}".`, stderrMsg);
+          log.error(`Could not get commit count for branch => "${bn}".`, stderrMsg);
         }
         
         let num = null;
         
         try {
           num = Number.parseInt(v.stdout);
-        }
-        catch (err) {
+        } catch (err) {
           return cb(err);
         }
         
@@ -243,8 +244,10 @@ async.autoInject({
     
     getValuesByAuthor(getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: EVCb<any>) {
       
+      const bn = String(getBranchName || '').trim();
+      
       const k = cp.spawn('bash');
-      k.stdin.write(`git log '${getBranchName}' ${getAuthor()} --max-count=50000 --numstat --pretty="%ae"`);
+      k.stdin.write(`git log '${bn}' ${getAuthor()} --max-count=50000 --numstat --pretty="%ae"`);
       k.stdin.end('\n');
       
       const results = {} as { [key: string]: AuthorType };
@@ -424,8 +427,7 @@ async.autoInject({
       let num = null;
       try {
         num = Number.parseInt(v);
-      }
-      catch (e) {
+      } catch (e) {
         // ignore
       }
       
@@ -454,14 +456,13 @@ async.autoInject({
             if (num === 0) {
               anum = String(a[num]).trim();
               bnum = String(b[num]).trim();
-            }
-            else {
+            } else {
               anum = Number.parseInt(String(a[num]).trim().split(' ')[0]);
               bnum = Number.parseInt(String(b[num]).trim().split(' ')[0]);
             }
             
             if (anum > bnum) {
-              return (sortOrder === 'desc') ? -1 : 1;
+              return sortOrder === 'desc' ? -1 : 1;
             }
             
             if (bnum > anum) {
