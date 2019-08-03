@@ -247,8 +247,8 @@ async.autoInject({
       const bn = String(getBranchName || '').trim();
       
       const k = cp.spawn('bash');
-      k.stdin.write(`git log '${bn}' ${getAuthor()} --max-count=50000 --numstat --pretty="%ae"`);
-      k.stdin.end('\n');
+      const cmd = `git log '${bn}' ${getAuthor()} --max-count=50000 --numstat --pretty='%ae';`;
+      k.stdin.end(cmd);
       
       const results = {} as { [key: string]: AuthorType };
       let currentAuthor = '';
