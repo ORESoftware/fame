@@ -14,7 +14,8 @@ import stdio = require('json-stdio');
 
 //project
 import {createParser} from './parser';
-import {CliOptions, cliOptions} from './cli-options';
+import {CliOptions} from "./main";
+import  cliOptions from './cli-options';
 import {log} from './logger';
 import chalk from "chalk";
 import {EVCb} from './main';
@@ -151,7 +152,7 @@ async.autoInject({
       k.stdin.end(`git show ${getBranchName};`);
       k.once('exit', code => {
         if (code > 0) {
-          log.error(`Branch/sha with name "${getBranchName}" does not exist locally.`);
+          log.error(`Branch/sha with name "${getBranchName}" does not exist locally. Try a git fetch.`);
         }
         cb(code, true);
       });
@@ -183,7 +184,7 @@ async.autoInject({
       k.stdin.end(`git rev-list --count '${getBranchName}';`);
       
       let stdout = '';
-      k.stdout.on('data', function (d) {
+      k.stdout.on('data',d => {
         stdout += String(d || '').trim();
       });
       
