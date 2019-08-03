@@ -15,16 +15,25 @@ import stdio = require('json-stdio');
 //project
 import {createParser} from './parser';
 import {CliOptions} from "./main";
-import  cliOptions from './cli-options';
-import {log} from './logger';
+import cliOptions from './cli-options';
+import log from './logger';
 import chalk from "chalk";
 import {EVCb} from './main';
 import {AuthorType} from "./main";
+import {ChildProcess} from "child_process";
 
 const Table = require('cli-table');
 const table = new Table({
   // colWidths: [200, 100, 100, 100, 100, 100, 100],
-  head: ['           Author             ', 'Files Modified', 'Commits', 'Added Lines', 'Removed Lines', 'Total Line Changes', 'Net Lines Added']
+  head: [
+    '           Author             ',
+    'Files Modified',
+    'Commits',
+    'Added Lines',
+    'Removed Lines',
+    'Total Line Changes',
+    'Net Lines Added'
+  ]
 });
 
 const sortByName = <any>{
@@ -145,14 +154,37 @@ const getAuthor = function () {
   return authors.map(a => ` --author='${a}' `).join('');
 };
 
+const getStdio = (k: ChildProcess) => {
+  
+  const v = {
+    stdout: '',
+    stderr: ''
+  };
+  
+  k.stdout.on('data', d => {
+    v.stdout += String(d || '').trim();
+  });
+  
+  k.stderr.on('data', d => {
+    v.stderr += String(d || '');
+  });
+  
+  return v;
+};
+
 async.autoInject({
     
     checkIfBranchExists(getBranchName: string, cb: EVCb<boolean>) {
       const k = cp.spawn('bash');
-      k.stdin.end(`git show ${getBranchName};`);
+      const cmd = `git show ${getBranchName};`;
+      k.stdin.end(cmd);
+      const v = getStdio(k);
       k.once('exit', code => {
         if (code > 0) {
-          log.error(`Branch/sha with name "${getBranchName}" does not exist locally. Try a git fetch.`);
+          log.error('The following command exited with a non-zero code:');
+          log.error(cmd);
+          let stderrMsg = v.stderr ? 'Here is the stderr: ' + v.stderr : '';
+          log.error(`Branch/sha with name "${getBranchName}" does not exist locally. Try a git fetch.`, stderrMsg);
         }
         cb(code, true);
       });
@@ -160,44 +192,45 @@ async.autoInject({
     
     getBranchName(cb: EVCb<string>) {
       const k = cp.spawn('bash');
-      k.stdin.end(`git rev-parse --abbrev-ref '${branch}';`);
       
-      let stdout = '';
-      k.stdout.on('data', d => {
-        stdout += String(d || '').trim();
-      });
+      const cmd = `git rev-parse --abbrev-ref '${branch}';`;
+      k.stdin.end(cmd);
+      const v = getStdio(k);
       
       k.once('exit', code => {
         if (code > 0) {
-          log.error(`Branch/sha with name "${branch}" does not exist locally.`);
+          log.error('The following command exited with a non-zero code:');
+          log.error(cmd);
+          let stderrMsg = v.stderr ? 'Here is the stderr: ' + v.stderr : '';
+          log.error(`Perhaps branch/sha with name "${branch}" does not exist locally?`, stderrMsg);
         }
         else {
-          log.info('Full branch name:', stdout);
+          log.info('Full branch name:', v.stdout);
         }
-        cb(code, stdout);
+        cb(code, v.stdout);
       });
     },
     
     getCommitCount(getBranchName: string, cb: EVCb<number>) {
       
       const k = cp.spawn('bash');
-      k.stdin.end(`git rev-list --count '${getBranchName}';`);
-      
-      let stdout = '';
-      k.stdout.on('data',d => {
-        stdout += String(d || '').trim();
-      });
+      const cmd = `git rev-list --count '${getBranchName}';`;
+      k.stdin.end(cmd);
+      const v = getStdio(k);
       
       k.once('exit', code => {
         
         if (code > 0) {
-          log.error(`Could not get commit count for branch => "${getBranchName}".`);
+          log.error('The following command exited with a non-zero code:');
+          log.error(cmd);
+          let stderrMsg = v.stderr ? 'Here is the stderr: ' + v.stderr : '';
+          log.error(`Could not get commit count for branch => "${getBranchName}".`, stderrMsg);
         }
         
         let num = null;
         
         try {
-          num = Number.parseInt(stdout);
+          num = Number.parseInt(v.stdout);
         }
         catch (err) {
           return cb(err);

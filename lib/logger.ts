@@ -1,3 +1,4 @@
+'use strict';
 
 import chalk from 'chalk';
 
@@ -6,3 +7,5 @@ export const log = {
   warn: console.log.bind(console, chalk.yellow('fame warning:')),
   error: console.error.bind(console, chalk.red.bold.underline('fame error:'))
 };
+
+export default log;

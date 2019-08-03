@@ -41,18 +41,14 @@ export default [
   },
   
   {
-    // `names` or a single `name`. First element is the `opts.KEY`.
     names: ['branch', 'sha', 'b'],
-    // See "Option specs" below for types.
     type: 'string',
     default: '',
     help: 'Git branch/sha to inspect, defaults to "HEAD".'
   },
   
   {
-    // `names` or a single `name`. First element is the `opts.KEY`.
     names: ['extensions', 'extension', 'ext'],
-    // See "Option specs" below for types.
     type: 'arrayOfString',
     help: 'Which file extensions to include.',
     default: []
@@ -60,51 +56,40 @@ export default [
   
   {
     names: ['endswith', 'ends-with'],
-    // See "Option specs" below for types.
     type: 'arrayOfString',
     help: 'Which file extensions to include.',
     default: []
   },
   
   {
-    // `names` or a single `name`. First element is the `opts.KEY`.
     names: ['author'],
-    // See "Option specs" below for types.
     type: 'arrayOfString',
     help: 'Which authors to include.',
     default: []
   },
   
   {
-    // `names` or a single `name`. First element is the `opts.KEY`.
     names: ['match'],
-    // See "Option specs" below for types.
     type: 'arrayOfString',
     help: 'Which file extensions to include.',
     default: ['\.*']
   },
   
   {
-    // `names` or a single `name`. First element is the `opts.KEY`.
     names: ['not-match'],
-    // See "Option specs" below for types.
     type: 'arrayOfString',
     help: 'Which file extensions to exclude.',
     default: []
   },
   
   {
-    // `names` or a single `name`. First element is the `opts.KEY`.
     names: ['json'],
-    // See "Option specs" below for types.
     type: 'bool',
     help: 'Write results in the form of JSON to stdout.',
   },
   
   {
-    // `names` or a single `name`. First element is the `opts.KEY`.
     names: ['table'],
-    // See "Option specs" below for types.
     type: 'bool',
     help: 'Force output table, if --json option is used.',
   }
