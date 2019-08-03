@@ -17,14 +17,14 @@ import {createParser} from './parser';
 import {CliOptions, cliOptions} from './cli-options';
 import {log} from './logger';
 import chalk from "chalk";
-import {EVCb} from './index';
+import {EVCb} from './main';
+import {AuthorType} from "./main";
 
 const Table = require('cli-table');
 const table = new Table({
   // colWidths: [200, 100, 100, 100, 100, 100, 100],
   head: ['           Author             ', 'Files Modified', 'Commits', 'Added Lines', 'Removed Lines', 'Total Line Changes', 'Net Lines Added']
 });
-
 
 const sortByName = <any>{
   'author': 0,
@@ -36,7 +36,6 @@ const sortByName = <any>{
   'netlinesadded': 6
 };
 
-
 const flattenDeep = function (a: Array<any>): Array<any> {
   return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
 };
@@ -44,6 +43,20 @@ const flattenDeep = function (a: Array<any>): Array<any> {
 const allowUnknown = process.argv.includes('--allow-unknown');
 const parser = dashdash.createParser({options: cliOptions, allowUnknown});
 const opts = <CliOptions>parser.parse({options: cliOptions});
+
+if (opts.version) {
+  {
+    const pkgJSON = require('../package.json');
+    if (opts.json) {
+      stdio.log({version: pkgJSON.version});
+    }
+    else {
+      console.log(pkgJSON.version);
+    }
+    
+    process.exit(0)
+  }
+}
 
 if (opts.help) {
   {
@@ -62,32 +75,6 @@ if (opts.completion) {
 }
 
 const sortOrder = opts.order.toLowerCase().startsWith('asc') ? 'asc' : 'desc';
-
-
-export interface AuthorType {
-  commits: number,
-  changes: number,
-  overall: number,
-  added: number,
-  removed: number,
-  author: string,
-  files: number,
-  uniqueFiles: { [key: string]: boolean },
-  totals?: {
-    added: number,
-    removed: number,
-    files: number,
-    commits: number,
-    changed: number
-  }
-}
-
-// echo '<h1>hello, world</h1>' | /Applications/Firefox.app/Contents/MacOS/firefox /dev/fd/0
-// echo '<h1>hello, world</h1>' | "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" /dev/fd/0
-// download:
-// https://ftp.mozilla.org/pub/firefox/releases/6.0.1/source/firefox-6.0.1.source.tar.bz2
-// unzip:
-// bzip2 -d firefox-6.0.1.source.tar.bz2
 
 const getNewAuthor = function (auth: string): AuthorType {
   return {
@@ -109,7 +96,18 @@ const mapAndFilter = (v: Array<any>): Array<any> => {
 const authors = mapAndFilter(flattenDeep([opts.author])).map(v => String(v).trim());
 authors.length && log.info('Author must match at least one of:', authors);
 
+if (opts._args.length > 1) {
+  log.error('Cannot produce result for more than one branch:', opts._args);
+  process.exit(1);
+}
+
+if (opts._args.length > 0 && opts.branch) {
+  log.error('Cannot produce result for more than one branch:', opts.branch, opts._args);
+  process.exit(1);
+}
+
 const branch = opts.branch || opts._args[0] || 'HEAD';
+
 log.info('SHA/Branch:', branch);
 
 const exts = mapAndFilter(flattenDeep([opts.extensions, opts.endswith])).map(v => String(v).trim());
@@ -120,7 +118,6 @@ matches.length && log.info('Files must match at least one of:', matches);
 
 const nonMatches = flattenDeep([opts.not_match]).filter(Boolean).map(v => new RegExp(String(v).trim()));
 nonMatches.length && log.info('Files must not match:', nonMatches);
-
 
 const doesFileMatch = function (f: string) {
   if (exts.length < 1) {
@@ -142,7 +139,6 @@ const doesFileNotMatchRegex = function (f: string) {
   }
   return !nonMatches.some(ext => ext.test(f));
 };
-
 
 const getAuthor = function () {
   return authors.map(a => ` --author='${a}' `).join('');
@@ -173,7 +169,8 @@ async.autoInject({
       k.once('exit', code => {
         if (code > 0) {
           log.error(`Branch/sha with name "${branch}" does not exist locally.`);
-        } else {
+        }
+        else {
           log.info('Full branch name:', stdout);
         }
         cb(code, stdout);
@@ -200,7 +197,8 @@ async.autoInject({
         
         try {
           num = Number.parseInt(stdout);
-        } catch (err) {
+        }
+        catch (err) {
           return cb(err);
         }
         
@@ -324,14 +322,13 @@ async.autoInject({
           commitNumber++;
           results[currentAuthor].commits++;
           
-          
         })
         .once('error', cb)
         .once('end', () => {
           
           const mapped = {} as { [key: string]: any };
           
-          for (const k of  Object.keys(results)) {
+          for (const k of Object.keys(results)) {
             
             const v = results[k];
             const z = mapped[k] = {} as any;
@@ -360,7 +357,6 @@ async.autoInject({
       return process.exit(1);
     }
     
-    
     console.log('\n');
     
     const {mapped, byAuth} = results.getValuesByAuthor;
@@ -380,7 +376,6 @@ async.autoInject({
       }
     }
     
-    
     const cleaned = String(opts.sort || '').split(',')
       .map(v => String(v || '').trim())
       .filter(Boolean)
@@ -395,14 +390,14 @@ async.autoInject({
       let num = null;
       try {
         num = Number.parseInt(v);
-      } catch (e) {
+      }
+      catch (e) {
         // ignore
       }
       
       if (Number.isInteger(num)) {
         return num;
       }
-      
       
       if (v in sortByName) {
         return sortByName[v];
@@ -412,9 +407,7 @@ async.autoInject({
       
     });
     
-    
     if (opts.table || !opts.json) {
-      
       
       if (sortListd.length > 0) {
         
@@ -422,30 +415,23 @@ async.autoInject({
           
           for (let num of sortListd) {
             
-            
             let anum, bnum;
             
             if (num === 0) {
               anum = String(a[num]).trim();
               bnum = String(b[num]).trim();
-            } else {
+            }
+            else {
               anum = Number.parseInt(String(a[num]).trim().split(' ')[0]);
               bnum = Number.parseInt(String(b[num]).trim().split(' ')[0]);
             }
             
-            
             if (anum > bnum) {
-              if (sortOrder === 'desc') {
-                return -1;
-              }
-              return 1;
+              return (sortOrder === 'desc') ? -1 : 1;
             }
             
             if (bnum > anum) {
-              if (sortOrder === 'desc') {
-                return 1;
-              }
-              return -1
+              return sortOrder === 'desc' ? 1 : -1;
             }
             
           }
@@ -454,11 +440,9 @@ async.autoInject({
         });
       }
       
-      
       for (const r of rows) {
         table.push(r);
       }
-      
       
       const str = table.toString().split('\n').map((v: string) => '  ' + v).join('\n');
       console.log(str);

@@ -115,6 +115,7 @@ export interface CliOptions {
   sort: string,
   asc: boolean,
   desc: boolean,
+  version: boolean,
   extensions: Array<string>,
   endswith: Array<string>,
   table: boolean,
