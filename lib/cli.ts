@@ -225,7 +225,7 @@ async.autoInject({
         if (code > 0) {
           log.error('The following command exited with a non-zero code:');
           log.error(cmd);
-          let stderrMsg = v.stderr ? 'Here is the stderr: ' + v.stderr : '';
+          let stderrMsg = v.stderr ? 'Here is the stderr:\n' + chalk.redBright(v.stderr) : '';
           log.error(`Could not get commit count for branch => "${bn}".`, stderrMsg);
         }
         
