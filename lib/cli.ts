@@ -185,7 +185,7 @@ async.autoInject({
         if (code > 0) {
           log.error('The following command exited with a non-zero code:');
           log.error(cmd);
-          let stderrMsg = v.stderr ? 'Here is the stderr: ' + v.stderr : '';
+          let stderrMsg = v.stderr ? 'Here is the stderr:\n' + chalk.redBright(v.stderr) : '';
           log.error(`Perhaps branch/sha with name "${branch}" does not exist locally?`, stderrMsg);
         } else {
           log.info('Full branch name:', v.stdout);
@@ -204,7 +204,7 @@ async.autoInject({
         if (code > 0) {
           log.error('The following command exited with a non-zero code:');
           log.error(cmd);
-          let stderrMsg = v.stderr ? 'Here is the stderr: ' + v.stderr : '';
+          let stderrMsg = v.stderr ? 'Here is the stderr:\n' + chalk.redBright(v.stderr) : '';
           log.error(`Branch/sha with name "${bn}" does not exist locally. Try a git fetch.`, stderrMsg);
         }
         cb(code, true);
