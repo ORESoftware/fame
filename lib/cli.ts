@@ -14,13 +14,15 @@ import stdio = require('json-stdio');
 
 //project
 import {createParser} from './parser';
-import {CliOptions} from "./main";
+import {CliOptions, FameConf} from "./main";
 import cliOptions from './cli-options';
 import log from './logger';
 import chalk from "chalk";
 import {EVCb} from './main';
 import {AuthorType} from "./main";
 import {ChildProcess} from "child_process";
+import * as fs from "fs";
+import * as path from "path";
 
 const Table = require('cli-table');
 const table = new Table({
@@ -59,7 +61,8 @@ if (opts.version) {
     const pkgJSON = require('../package.json');
     if (opts.json) {
       stdio.log({version: pkgJSON.version});
-    } else {
+    }
+    else {
       console.log(pkgJSON.version);
     }
     
@@ -173,7 +176,15 @@ const getStdio = (k: ChildProcess, trimStdout?: boolean) => {
   return v;
 };
 
+const fmhome = path.resolve(process.env.HOME + '/.fame');
+
 async.autoInject({
+    
+    mkdirAtHome(cb: EVCb<any>) {
+      fs.mkdir(fmhome, err => {
+        cb(err && err.code === 'EEXIST' ? null : err);
+      });
+    },
     
     getBranchName(cb: EVCb<string>) {
       const k = cp.spawn('bash');
@@ -187,7 +198,8 @@ async.autoInject({
           log.error(cmd);
           let stderrMsg = v.stderr ? 'Here is the stderr:\n' + chalk.redBright(v.stderr) : '';
           log.error(`Perhaps branch/sha with name "${branch}" does not exist locally?`, stderrMsg);
-        } else {
+        }
+        else {
           log.info('Full branch name:', v.stdout);
         }
         cb(code, v.stdout);
@@ -233,7 +245,8 @@ async.autoInject({
         
         try {
           num = Number.parseInt(v.stdout);
-        } catch (err) {
+        }
+        catch (err) {
           return cb(err);
         }
         
@@ -242,7 +255,48 @@ async.autoInject({
       });
     },
     
-    getValuesByAuthor(getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: EVCb<any>) {
+    getValuesByAuthor(mkdirAtHome: null, getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: EVCb<any>) {
+      
+      const mapEmailToAuthor = new Map<string, string>();
+      
+      try {
+        var cnfraw = require(path.resolve(fmhome + '/fame.conf.js'));
+        var cnf: FameConf = cnfraw.default || cnfraw;
+        
+        const displayNames = cnf['display names'];
+        
+        if (!(displayNames && typeof displayNames === 'object' && !Array.isArray(displayNames))) {
+          throw new Error('The "display names" property in your fame.conf.js file needs to point to a plain object.');
+        }
+        
+        for (const [n, v] of Object.entries(displayNames)) {
+          if (!(v && Array.isArray(v.emails))) {
+            log.warn('The value for a display name entry needs to an object with an "emails" property.')
+          }
+          
+          for (const email of v.emails) {
+            mapEmailToAuthor.set(email, n);
+          }
+        }
+        
+      }
+      catch (err) {
+        if (/Cannot find module/ig.test(String(err))) {
+          log.info('Could not find a fame.conf.js file.');
+        }
+        else if (!/exist/ig.test(String(err))) {
+          log.warn(err);
+        }
+        
+        cnf = {} as FameConf;
+      }
+      
+      const getAuthorName = (v: string): string => {
+        if (mapEmailToAuthor.has(v)) {
+          return mapEmailToAuthor.get(v);
+        }
+        return v;
+      };
       
       const bn = String(getBranchName || '').trim();
       
@@ -282,12 +336,16 @@ async.autoInject({
             const v = results[currentAuthor];
             
             if (!v) {
-              throw new Error('No available author with email:' + currentAuthor);
+              throw new Error('No available author with email: ' + currentAuthor);
             }
             
             const f = String(values[2]);
             
-            if (f.startsWith('node_modules/') || f.startsWith('/node_modules/')) {
+            if (
+              f.startsWith('node_modules/') ||
+              f.startsWith('/node_modules/') ||
+              f.startsWith('./node_modules/')
+            ) {
               return;
             }
             
@@ -347,7 +405,7 @@ async.autoInject({
             return;
           }
           
-          currentAuthor = values[0];
+          currentAuthor = getAuthorName(values[0]);
           
           if (!results[currentAuthor]) {
             results[currentAuthor] = getNewAuthor(currentAuthor);
@@ -427,7 +485,8 @@ async.autoInject({
       let num = null;
       try {
         num = Number.parseInt(v);
-      } catch (e) {
+      }
+      catch (e) {
         // ignore
       }
       
@@ -456,7 +515,8 @@ async.autoInject({
             if (num === 0) {
               anum = String(a[num]).trim();
               bnum = String(b[num]).trim();
-            } else {
+            }
+            else {
               anum = Number.parseInt(String(a[num]).trim().split(' ')[0]);
               bnum = Number.parseInt(String(b[num]).trim().split(' ')[0]);
             }

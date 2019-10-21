@@ -8,6 +8,15 @@ export const r2gSmokeTest = async () => {
 export type EVCb<T, E = any> = (err: E, val?: T) => void;
 
 
+export interface FameConf {
+  'display names': {
+    [key: string]: {
+      emails: Array<string>
+    }
+  }
+}
+
+
 export interface AuthorType {
   commits: number,
   changes: number,
