@@ -14,6 +14,9 @@ if [[ "$oresoftware_local_dev" == "yes" ]]; then
 fi
 
 
+npm run tsc;
+
+
 mkdir -p "$HOME/.oresoftware/bash" || {
   echo "could not create oresoftware/bash dir."
   exit 1;
