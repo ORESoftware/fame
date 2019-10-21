@@ -13,6 +13,9 @@ if [[ "$oresoftware_local_dev" == "yes" ]]; then
     echo "Running the fame postinstall script in oresoftware local development env."
 fi
 
+pwd
+
+ls -a
 
 npm run tsc;
 
