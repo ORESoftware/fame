@@ -21,7 +21,7 @@ $ npm install -g fame
 <br>
 
 <kbd>
- <image src="https://raw.githubusercontent.com/oresoftware/fame/master/media/big.png">
+ <img src="https://raw.githubusercontent.com/oresoftware/fame/master/media/big.png">
 </kbd>
 
 
@@ -60,6 +60,44 @@ fame --author=donnie --author=ronnie --author=jonnie
 -----
 
 ### More options
+
+<details>
+<summary class="text-primary mb-3">Handling multiple email addresses for same person.</summary>
+
+```shell
+
+mkdir -p ~/.fame
+
+cat <<EOF > ~/.fame/fame.conf.js
+
+'use strict';
+
+exports.default = {
+
+  'display names': {
+
+     'John James': {
+        emails: ['jj@watt.com', 'abc@example.com', 'john@james-mac.local']
+     },
+
+    'Thurgood Marshall': {
+        emails: ['tm@supremecourt.us', 'marsh@spc.gov']
+     },
+
+     'Alexander Mills': {
+      emails: ['alex@oresoftware.com', 'alex@alexs-mac.local']
+     }
+  }
+
+}
+
+EOF
+
+```
+
+now, when fame runs at the command line, it will pick up the info from this file, to combine info from the different emails.
+
+</details>
 
 <details>
 <summary class="text-primary mb-3">Sorting with --order and --sort options</summary>
