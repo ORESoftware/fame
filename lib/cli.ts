@@ -292,6 +292,9 @@ async.autoInject({
       }
       
       const getAuthorName = (v: string): string => {
+        if(v.startsWith('✔❤☆')){
+          v = v.slice(3, -3);
+        }
         if (mapEmailToAuthor.has(v)) {
           return mapEmailToAuthor.get(v);
         }
@@ -301,7 +304,7 @@ async.autoInject({
       const bn = String(getBranchName || '').trim();
       
       const k = cp.spawn('bash');
-      const cmd = `git log '${bn}' ${getAuthor()} --max-count=50000 --numstat --pretty='%ae';`;
+      const cmd = `git log '${bn}' ${getAuthor()} --max-count=50000 --numstat --pretty='✔❤☆%ae✔❤☆';`;
       k.stdin.end(cmd);
       
       const results = {} as { [key: string]: AuthorType };
@@ -331,7 +334,7 @@ async.autoInject({
             return;
           }
           
-          if (values[1] && values[2]) {
+          if (!String(values[0]).startsWith('"') && values[1] && values[2]) {
             
             const v = results[currentAuthor];
             
