@@ -41,6 +41,7 @@ export interface CliOptions {
   order: string,
   sort: string,
   asc: boolean,
+  ignore_email_warning: boolean,
   desc: boolean,
   extensions: Array<string>,
   endswith: Array<string>,

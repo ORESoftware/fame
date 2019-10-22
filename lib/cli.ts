@@ -92,7 +92,7 @@ if (opts.add) {
   {
     const email = opts._args[0];
     const user = opts._args[1];
-    addUser(email, user);
+    addUser(email, user, opts);
     // @ts-ignore
     return;
   }

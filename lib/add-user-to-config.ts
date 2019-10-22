@@ -4,6 +4,7 @@ import {fmhome, fnhomeConf} from "./constants";
 import * as fs from "fs";
 import * as path from "path";
 import log from './logger';
+import {CliOptions} from "./main";
 
 const skel = `
 {
@@ -12,10 +13,12 @@ const skel = `
 `;
 
 
-export default (email: string, name: string,) => {
+export default (email: string, name: string, opts: CliOptions) => {
   
   if(!/@/.test(email)){
-    log.error('Email address must have an @ sign:', email);
+    if(!opts.ignore_email_warning){
+      log.error('Email address must have an @ sign:', email, 'use --ignore-email-warning to ignore.');
+    }
     process.exit(1);
   }
   

@@ -89,6 +89,12 @@ export default [
   },
   
   {
+    names: ['ignore-email-warning'],
+    type: 'bool',
+    help: 'Ignore email warning.',
+  },
+  
+  {
     names: ['json'],
     type: 'bool',
     help: 'Write results in the form of JSON to stdout.',
