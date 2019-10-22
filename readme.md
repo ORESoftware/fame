@@ -14,10 +14,11 @@ People were complaining that the ruby/python tools were too slow, so I wrote thi
 $ npm install -g fame
 ```
 
-#### For latest version, use: `npm view fame version`
+> For latest version, use: `npm view fame version`
 
 -----
 
+<br>
 <br>
 
 <kbd>
