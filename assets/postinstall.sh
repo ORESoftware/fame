@@ -17,14 +17,10 @@ pwd
 
 ls -a
 
-npm run tsc;
-
-
 mkdir -p "$HOME/.oresoftware/bash" || {
   echo "could not create oresoftware/bash dir."
   exit 1;
 }
-
 
 cat assets/shell.sh > "$HOME/.oresoftware/bash/fame.sh" || {
   echo "Could not create oresoftware/bash/fame.sh file."
