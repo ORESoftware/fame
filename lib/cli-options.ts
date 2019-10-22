@@ -83,6 +83,12 @@ export default [
   },
   
   {
+    names: ['add'],
+    type: 'bool',
+    help: 'Create user name alias.',
+  },
+  
+  {
     names: ['json'],
     type: 'bool',
     help: 'Write results in the form of JSON to stdout.',

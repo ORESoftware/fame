@@ -23,6 +23,8 @@ import {AuthorType} from "./main";
 import {ChildProcess} from "child_process";
 import * as fs from "fs";
 import * as path from "path";
+import {fmhome, fnhomeConf, magicString} from "./constants";
+import addUser from './add-user-to-config';
 
 const Table = require('cli-table');
 const table = new Table({
@@ -86,6 +88,16 @@ if (opts.completion) {
   }
 }
 
+if (opts.add) {
+  {
+    const email = opts._args[0];
+    const user = opts._args[1];
+    addUser(email, user);
+    // @ts-ignore
+    return;
+  }
+}
+
 const sortOrder = opts.order.toLowerCase().startsWith('asc') ? 'asc' : 'desc';
 
 const getNewAuthor = function (auth: string): AuthorType {
@@ -101,7 +113,7 @@ const getNewAuthor = function (auth: string): AuthorType {
   }
 };
 
-const magicString = '✔❤☆';
+
 
 const mapAndFilter = (v: Array<any>): Array<any> => {
   return v.map(v => String(v || '').trim()).filter(Boolean);
@@ -178,7 +190,7 @@ const getStdio = (k: ChildProcess, trimStdout?: boolean) => {
   return v;
 };
 
-const fmhome = path.resolve(process.env.HOME + '/.fame');
+
 
 async.autoInject({
     
@@ -262,7 +274,7 @@ async.autoInject({
       const mapEmailToAuthor = new Map<string, string>();
       
       try {
-        var cnfraw = require(path.resolve(fmhome + '/fame.conf.js'));
+        var cnfraw = require(fnhomeConf);
         var cnf: FameConf = cnfraw.default || cnfraw;
         
         const displayNames = cnf['display names'];
@@ -283,8 +295,6 @@ async.autoInject({
         
       }
       catch (err) {
-        
-        log.error(err);
         
         if (/Cannot find module/ig.test(String(err))) {
           log.info('Could not find a fame.conf.js file.');

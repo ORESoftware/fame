@@ -65,39 +65,15 @@ fame --author=donnie --author=ronnie --author=jonnie
 <summary class="text-primary mb-3">Handling multiple email addresses for same person.</summary>
 
 ```shell
-
-mkdir -p ~/.fame
-
-cat <<EOF > ~/.fame/fame.conf.js
-
-'use strict';
-
-exports.default = {
-
-  'display names': {
-
-     'John James': {
-        emails: ['jj@watt.com', 'abc@example.com', 'john@james-mac.local']
-     },
-
-    'Thurgood Marshall': {
-        emails: ['tm@supremecourt.us', 'marsh@spc.gov']
-     },
-
-     'Alexander Mills': {
-      emails: ['alex@oresoftware.com', 'alex@alexs-mac.local']
-     }
-  }
-
-}
-
-EOF
-
+fame --add <email> <display name>
 ```
 
-now, when fame runs at the command line, it will pick up the info from this file, to combine info from the different emails.
+now, when fame runs at the command line, it will pick up the info from this file ($HOME/fame.conf.json), 
+to combine info from the different emails.
 
 </details>
+
+<br>
 
 <details>
 <summary class="text-primary mb-3">Sorting with --order and --sort options</summary>
@@ -133,14 +109,16 @@ Comma-separated list, case-insensitive and whitespace-insensitive
 <summary class="text-primary mb-3">Matching on files (ignoring files too)</summary>
 
 <br>
+<br>
 
 ### Info for all matching files
 
 ```bash
 fame --match='\.js'
 ```
-
 -----
+
+<br>
 
 ### Info for all files that end with
 

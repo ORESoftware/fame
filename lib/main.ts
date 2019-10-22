@@ -37,6 +37,7 @@ export interface AuthorType {
 
 
 export interface CliOptions {
+  add: boolean,
   order: string,
   sort: string,
   asc: boolean,
