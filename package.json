@@ -1,6 +1,6 @@
 {
   "name": "fame",
-  "version": "0.0.117-rc.1",
+  "version": "0.0.117-rc.2",
   "description": "Provides git committer stats via command line.",
   "bin": {
     "fame": "cli/fame.js"
