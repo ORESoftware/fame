@@ -101,6 +101,8 @@ const getNewAuthor = function (auth: string): AuthorType {
   }
 };
 
+const magicString = '✔❤☆';
+
 const mapAndFilter = (v: Array<any>): Array<any> => {
   return v.map(v => String(v || '').trim()).filter(Boolean);
 };
@@ -281,6 +283,9 @@ async.autoInject({
         
       }
       catch (err) {
+        
+        log.error(err);
+        
         if (/Cannot find module/ig.test(String(err))) {
           log.info('Could not find a fame.conf.js file.');
         }
@@ -292,7 +297,7 @@ async.autoInject({
       }
       
       const getAuthorName = (v: string): string => {
-        if(v.startsWith('✔❤☆')){
+        if (v.startsWith(magicString)) {
           v = v.slice(3, -3);
         }
         if (mapEmailToAuthor.has(v)) {
@@ -328,13 +333,14 @@ async.autoInject({
       
       k.stdout.pipe(createParser()).on('data', d => {
           
-          const values = String(d || '').split(/\s+/g);
+          const rawLine = String(d || '');
+          const values = rawLine.split(/\s+/g);
           
           if (!values[0]) {
             return;
           }
           
-          if (!String(values[0]).startsWith('"') && values[1] && values[2]) {
+          if (!String(values[0]).startsWith(magicString) && values[1] && values[2]) {
             
             const v = results[currentAuthor];
             
@@ -408,7 +414,7 @@ async.autoInject({
             return;
           }
           
-          currentAuthor = getAuthorName(values[0]);
+          currentAuthor = getAuthorName(rawLine);
           
           if (!results[currentAuthor]) {
             results[currentAuthor] = getNewAuthor(currentAuthor);

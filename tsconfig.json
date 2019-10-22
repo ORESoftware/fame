@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "outDir": "dist",
+    "rootDir": "lib",
     "skipLibCheck": true,
-    "declaration": true,
+    "declaration": false,
     "baseUrl": ".",
     "target": "es6",
     "module": "commonjs",
