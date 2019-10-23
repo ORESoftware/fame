@@ -1,0 +1,10 @@
+{
+  "npm-link-up": true,
+  "linkToSelf": true,
+  "searchRoots": [
+    "$HOME/codes/oresoftware"
+  ],
+  "list": [
+    "@oresoftware/cli"
+  ]
+}

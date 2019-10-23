@@ -4,7 +4,8 @@ import {fmhome, fnhomeConf} from "./constants";
 import * as fs from "fs";
 import * as path from "path";
 import log from './logger';
-import {CliOptions} from "./main";
+import CliOptions from "./cli-options";
+import {OptionsToType} from "@oresoftware/cli";
 
 const skel = `
 {
@@ -13,7 +14,7 @@ const skel = `
 `;
 
 
-export default (email: string, name: string, opts: CliOptions) => {
+export default (email: string, name: string, opts: OptionsToType<typeof CliOptions>) => {
   
   if(!/@/.test(email)){
     if(!opts.ignore_email_warning){

@@ -14,8 +14,9 @@ import stdio = require('json-stdio');
 
 //project
 import {createParser} from './parser';
-import {CliOptions, FameConf} from "./main";
+import {FameConf} from "./main";
 import cliOptions from './cli-options';
+import cliParser from './cli-parser';
 import log from './logger';
 import chalk from "chalk";
 import {EVCb} from './main';
@@ -54,9 +55,11 @@ const flattenDeep = function (a: Array<any>): Array<any> {
   return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
 };
 
-const allowUnknown = process.argv.includes('--allow-unknown');
-const parser = dashdash.createParser({options: cliOptions, allowUnknown});
-const opts = <CliOptions>parser.parse({options: cliOptions});
+// const allowUnknown = process.argv.includes('--allow-unknown');
+// const parser = dashdash.createParser({options: cliOptions, allowUnknown});
+// const opts = <CliOptions>parser.parse({options: cliOptions});
+
+const {opts, values, groups} = cliParser.parse(process.argv);
 
 if (opts.version) {
   {
@@ -74,24 +77,23 @@ if (opts.version) {
 
 if (opts.help) {
   {
-    const help = parser.help({includeEnv: true}).trimRight();
-    console.log('usage: node foo.js [OPTIONS]\n' + 'options:\n' + help);
+    console.log(cliParser.getHelpString());
     process.exit(0);
   }
 }
 
-if (opts.completion) {
-  {
-    const code = parser.bashCompletion({name: 'fame'});
-    console.log(code);
-    process.exit(0);
-  }
-}
+// if (opts.completion) {
+//   {
+//     const code = parser.bashCompletion({name: 'fame'});
+//     console.log(code);
+//     process.exit(0);
+//   }
+// }
 
 if (opts.add) {
   {
-    const email = opts._args[0];
-    const user = opts._args[1];
+    const email = values[0];
+    const user = values[1];
     addUser(email, user, opts);
     // @ts-ignore
     return;
@@ -113,8 +115,6 @@ const getNewAuthor = function (auth: string): AuthorType {
   }
 };
 
-
-
 const mapAndFilter = (v: Array<any>): Array<any> => {
   return v.map(v => String(v || '').trim()).filter(Boolean);
 };
@@ -122,17 +122,17 @@ const mapAndFilter = (v: Array<any>): Array<any> => {
 const authors = mapAndFilter(flattenDeep([opts.author])).map(v => String(v).trim());
 authors.length && log.info('Author must match at least one of:', authors);
 
-if (opts._args.length > 1) {
-  log.error('Cannot produce result for more than one branch:', opts._args);
+if (values.length > 1) {
+  log.error('Cannot produce result for more than one branch:', values);
   process.exit(1);
 }
 
-if (opts._args.length > 0 && opts.branch) {
-  log.error('Cannot produce result for more than one branch:', opts.branch, opts._args);
+if (values.length > 0 && opts.branch) {
+  log.error('Cannot produce result for more than one branch:', opts.branch, values);
   process.exit(1);
 }
 
-const branch = String(opts.branch || opts._args[0] || 'HEAD').trim();
+const branch = String(opts.branch || values[0] || 'HEAD').trim();
 log.info('SHA/Branch:', branch);
 
 const exts = mapAndFilter(flattenDeep([opts.extensions, opts.endswith])).map(v => String(v).trim());
@@ -189,8 +189,6 @@ const getStdio = (k: ChildProcess, trimStdout?: boolean) => {
   
   return v;
 };
-
-
 
 async.autoInject({
     
