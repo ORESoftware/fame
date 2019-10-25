@@ -66,11 +66,17 @@ fame --author=donnie --author=ronnie --author=jonnie
 <summary class="text-primary mb-3">Handling multiple email addresses for same person.</summary>
 
 ```shell
-fame --add <email> <display name>
+fame --add-user <display name> -e <email> 
 ```
 
 now, when fame runs at the command line, it will pick up the info from this file ($HOME/fame.conf.json), 
 to combine info from the different emails.
+
+You can add multiple emails like so:
+
+```shell
+fame -u <display name> -e <email> -e <email> 
+```
 
 </details>
 

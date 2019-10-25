@@ -1,4 +1,4 @@
-
+'use strict';
 
 export const r2gSmokeTest = async () => {
   return true;
