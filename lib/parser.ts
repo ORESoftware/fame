@@ -2,7 +2,6 @@
 
 import stream = require("stream");
 
-
 export const createParser = function () {
   
   let lastLineData = '';

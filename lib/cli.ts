@@ -16,6 +16,7 @@ import stdio = require('json-stdio');
 import {createParser} from './parser';
 import {CliOptions, FameConf} from "./main";
 import cliOptions from './cli-options';
+import cliParser from './cli-parser';
 import log from './logger';
 import chalk from "chalk";
 import {EVCb} from './main';
@@ -23,6 +24,8 @@ import {AuthorType} from "./main";
 import {ChildProcess} from "child_process";
 import * as fs from "fs";
 import * as path from "path";
+import {fmhome, fnhomeConf, magicString} from "./constants";
+import addUser from './add-user-to-config';
 
 const Table = require('cli-table');
 const table = new Table({
@@ -52,9 +55,11 @@ const flattenDeep = function (a: Array<any>): Array<any> {
   return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
 };
 
-const allowUnknown = process.argv.includes('--allow-unknown');
-const parser = dashdash.createParser({options: cliOptions, allowUnknown});
-const opts = <CliOptions>parser.parse({options: cliOptions});
+// const allowUnknown = process.argv.includes('--allow-unknown');
+// const parser = dashdash.createParser({options: cliOptions, allowUnknown});
+// const opts = <CliOptions>parser.parse({options: cliOptions});
+
+const {opts, values, groups} = cliParser.parse(process.argv);
 
 if (opts.version) {
   {
@@ -72,17 +77,24 @@ if (opts.version) {
 
 if (opts.help) {
   {
-    const help = parser.help({includeEnv: true}).trimRight();
-    console.log('usage: node foo.js [OPTIONS]\n' + 'options:\n' + help);
+    console.log(cliParser.getHelpString());
     process.exit(0);
   }
 }
 
-if (opts.completion) {
+// if (opts.completion) {
+//   {
+//     const code = parser.bashCompletion({name: 'fame'});
+//     console.log(code);
+//     process.exit(0);
+//   }
+// }
+
+if (opts.add_user) {
   {
-    const code = parser.bashCompletion({name: 'fame'});
-    console.log(code);
-    process.exit(0);
+    addUser(opts);
+    // @ts-ignore
+    return;
   }
 }
 
@@ -108,17 +120,17 @@ const mapAndFilter = (v: Array<any>): Array<any> => {
 const authors = mapAndFilter(flattenDeep([opts.author])).map(v => String(v).trim());
 authors.length && log.info('Author must match at least one of:', authors);
 
-if (opts._args.length > 1) {
-  log.error('Cannot produce result for more than one branch:', opts._args);
+if (values.length > 1) {
+  log.error('Cannot produce result for more than one branch:', values);
   process.exit(1);
 }
 
-if (opts._args.length > 0 && opts.branch) {
-  log.error('Cannot produce result for more than one branch:', opts.branch, opts._args);
+if (values.length > 0 && opts.branch) {
+  log.error('Cannot produce result for more than one branch:', opts.branch, values);
   process.exit(1);
 }
 
-const branch = String(opts.branch || opts._args[0] || 'HEAD').trim();
+const branch = String(opts.branch || values[0] || 'HEAD').trim();
 log.info('SHA/Branch:', branch);
 
 const exts = mapAndFilter(flattenDeep([opts.extensions, opts.endswith])).map(v => String(v).trim());
@@ -175,8 +187,6 @@ const getStdio = (k: ChildProcess, trimStdout?: boolean) => {
   
   return v;
 };
-
-const fmhome = path.resolve(process.env.HOME + '/.fame');
 
 async.autoInject({
     
@@ -260,7 +270,8 @@ async.autoInject({
       const mapEmailToAuthor = new Map<string, string>();
       
       try {
-        var cnfraw = require(path.resolve(fmhome + '/fame.conf.js'));
+
+        var cnfraw = require(fnhomeConf);
         var cnf: FameConf = cnfraw.default || cnfraw;
         
         const displayNames = cnf['display names'];
@@ -281,6 +292,7 @@ async.autoInject({
         
       }
       catch (err) {
+        
         if (/Cannot find module/ig.test(String(err))) {
           log.info('Could not find a fame.conf.js file.');
         }
@@ -292,6 +304,11 @@ async.autoInject({
       }
       
       const getAuthorName = (v: string): string => {
+
+        if (v.startsWith(magicString)) {
+          v = v.slice(3, -3);
+        }
+
         if (mapEmailToAuthor.has(v)) {
           return mapEmailToAuthor.get(v);
         }
@@ -301,7 +318,7 @@ async.autoInject({
       const bn = String(getBranchName || '').trim();
       
       const k = cp.spawn('bash');
-      const cmd = `git log '${bn}' ${getAuthor()} --max-count=50000 --numstat --pretty='%ae';`;
+      const cmd = `git log '${bn}' ${getAuthor()} --max-count=50000 --numstat --pretty='✔❤☆%ae✔❤☆';`;
       k.stdin.end(cmd);
       
       const results = {} as { [key: string]: AuthorType };
@@ -325,13 +342,14 @@ async.autoInject({
       
       k.stdout.pipe(createParser()).on('data', d => {
           
-          const values = String(d || '').split(/\s+/g);
+          const rawLine = String(d || '');
+          const values = rawLine.split(/\s+/g);
           
           if (!values[0]) {
             return;
           }
           
-          if (values[1] && values[2]) {
+          if (!String(values[0]).startsWith(magicString) && values[1] && values[2]) {
             
             const v = results[currentAuthor];
             
@@ -405,7 +423,7 @@ async.autoInject({
             return;
           }
           
-          currentAuthor = getAuthorName(values[0]);
+          currentAuthor = getAuthorName(rawLine);
           
           if (!results[currentAuthor]) {
             results[currentAuthor] = getNewAuthor(currentAuthor);

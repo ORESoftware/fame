@@ -13,12 +13,14 @@ if [[ "$oresoftware_local_dev" == "yes" ]]; then
     echo "Running the fame postinstall script in oresoftware local development env."
 fi
 
+pwd
+
+ls -a
 
 mkdir -p "$HOME/.oresoftware/bash" || {
   echo "could not create oresoftware/bash dir."
   exit 1;
 }
-
 
 cat assets/shell.sh > "$HOME/.oresoftware/bash/fame.sh" || {
   echo "Could not create oresoftware/bash/fame.sh file."
