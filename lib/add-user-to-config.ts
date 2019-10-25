@@ -121,6 +121,7 @@ export default (opts: OptionsToType<typeof CliOptions>) => {
       if (v && v.es === symbolz.es) {
         process.exit(1);
       }
+      process.exit(0);
     });
   
 };
