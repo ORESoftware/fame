@@ -1,7 +1,6 @@
 'use strict';
 
-import {asOptions, OptionsToType, Type} from "@oresoftware/cli";
-
+import {asOptions, Type} from "@oresoftware/cli";
 
 export default asOptions([
   
@@ -118,15 +117,29 @@ export default asOptions([
   },
   
   {
-    name: 'add',
-    type: Type.Boolean,
-    help: 'Create user name alias.',
+    name: 'add_user',
+    short: 'u',
+    type: Type.String,
+    help: 'Create or append email to given user name.',
+  },
+  
+  {
+    name: 'email',
+    short: 'e',
+    type: Type.ArrayOfString,
+    help: 'Email address to add to user.',
   },
   
   {
     name: 'ignore_email_warning',
     type: Type.Boolean,
     help: 'Ignore email warning.',
+  },
+  
+  {
+    name: 'ignore_user_name_warning',
+    type: Type.Boolean,
+    help: 'Ignore warnings about user names.'
   },
   
   {

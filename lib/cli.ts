@@ -90,11 +90,9 @@ if (opts.help) {
 //   }
 // }
 
-if (opts.add) {
+if (opts.add_user) {
   {
-    const email = values[0];
-    const user = values[1];
-    addUser(email, user, opts);
+    addUser(opts);
     // @ts-ignore
     return;
   }
