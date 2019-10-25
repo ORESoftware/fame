@@ -1,15 +1,16 @@
 {
   "name": "fame",
-  "version": "0.0.116",
+  "version": "0.0.117-rc.3",
   "description": "Provides git committer stats via command line.",
   "bin": {
     "fame": "cli/fame.js"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "typings": "dist/index.d.ts",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
+  "typings": "dist/main.d.ts",
   "scripts": {
     "test": "suman test",
+    "tsc": "tsc",
     "postinstall": "assets/postinstall.sh"
   },
   "repository": {
@@ -30,9 +31,11 @@
   "homepage": "https://github.com/ORESoftware/fame#readme",
   "devDependencies": {
     "@types/async": "^2.0.49",
-    "@types/node": "12.6.8"
+    "@types/node": "12.6.8",
+    "typescript": "^3.6.4"
   },
   "dependencies": {
+    "@oresoftware/cli": "0.0.104",
     "async": "^2.6.0",
     "chalk": "^2.3.2",
     "cli-table": "^0.3.1",

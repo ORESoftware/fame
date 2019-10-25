@@ -14,13 +14,18 @@ import stdio = require('json-stdio');
 
 //project
 import {createParser} from './parser';
-import {CliOptions} from "./main";
+import {FameConf} from "./main";
 import cliOptions from './cli-options';
+import cliParser from './cli-parser';
 import log from './logger';
 import chalk from "chalk";
 import {EVCb} from './main';
 import {AuthorType} from "./main";
 import {ChildProcess} from "child_process";
+import * as fs from "fs";
+import * as path from "path";
+import {fmhome, fnhomeConf, magicString} from "./constants";
+import addUser from './add-user-to-config';
 
 const Table = require('cli-table');
 const table = new Table({
@@ -50,16 +55,19 @@ const flattenDeep = function (a: Array<any>): Array<any> {
   return a.reduce((acc, val) => Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val), []);
 };
 
-const allowUnknown = process.argv.includes('--allow-unknown');
-const parser = dashdash.createParser({options: cliOptions, allowUnknown});
-const opts = <CliOptions>parser.parse({options: cliOptions});
+// const allowUnknown = process.argv.includes('--allow-unknown');
+// const parser = dashdash.createParser({options: cliOptions, allowUnknown});
+// const opts = <CliOptions>parser.parse({options: cliOptions});
+
+const {opts, values, groups} = cliParser.parse(process.argv);
 
 if (opts.version) {
   {
     const pkgJSON = require('../package.json');
     if (opts.json) {
       stdio.log({version: pkgJSON.version});
-    } else {
+    }
+    else {
       console.log(pkgJSON.version);
     }
     
@@ -69,17 +77,24 @@ if (opts.version) {
 
 if (opts.help) {
   {
-    const help = parser.help({includeEnv: true}).trimRight();
-    console.log('usage: node foo.js [OPTIONS]\n' + 'options:\n' + help);
+    console.log(cliParser.getHelpString());
     process.exit(0);
   }
 }
 
-if (opts.completion) {
+// if (opts.completion) {
+//   {
+//     const code = parser.bashCompletion({name: 'fame'});
+//     console.log(code);
+//     process.exit(0);
+//   }
+// }
+
+if (opts.add_user) {
   {
-    const code = parser.bashCompletion({name: 'fame'});
-    console.log(code);
-    process.exit(0);
+    addUser(opts);
+    // @ts-ignore
+    return;
   }
 }
 
@@ -105,17 +120,17 @@ const mapAndFilter = (v: Array<any>): Array<any> => {
 const authors = mapAndFilter(flattenDeep([opts.author])).map(v => String(v).trim());
 authors.length && log.info('Author must match at least one of:', authors);
 
-if (opts._args.length > 1) {
-  log.error('Cannot produce result for more than one branch:', opts._args);
+if (values.length > 1) {
+  log.error('Cannot produce result for more than one branch:', values);
   process.exit(1);
 }
 
-if (opts._args.length > 0 && opts.branch) {
-  log.error('Cannot produce result for more than one branch:', opts.branch, opts._args);
+if (values.length > 0 && opts.branch) {
+  log.error('Cannot produce result for more than one branch:', opts.branch, values);
   process.exit(1);
 }
 
-const branch = String(opts.branch || opts._args[0] || 'HEAD').trim();
+const branch = String(opts.branch || values[0] || 'HEAD').trim();
 log.info('SHA/Branch:', branch);
 
 const exts = mapAndFilter(flattenDeep([opts.extensions, opts.endswith])).map(v => String(v).trim());
@@ -175,6 +190,12 @@ const getStdio = (k: ChildProcess, trimStdout?: boolean) => {
 
 async.autoInject({
     
+    mkdirAtHome(cb: EVCb<any>) {
+      fs.mkdir(fmhome, err => {
+        cb(err && err.code === 'EEXIST' ? null : err);
+      });
+    },
+    
     getBranchName(cb: EVCb<string>) {
       const k = cp.spawn('bash');
       const cmd = `git rev-parse --abbrev-ref '${branch}';`;
@@ -187,7 +208,8 @@ async.autoInject({
           log.error(cmd);
           let stderrMsg = v.stderr ? 'Here is the stderr:\n' + chalk.redBright(v.stderr) : '';
           log.error(`Perhaps branch/sha with name "${branch}" does not exist locally?`, stderrMsg);
-        } else {
+        }
+        else {
           log.info('Full branch name:', v.stdout);
         }
         cb(code, v.stdout);
@@ -233,7 +255,8 @@ async.autoInject({
         
         try {
           num = Number.parseInt(v.stdout);
-        } catch (err) {
+        }
+        catch (err) {
           return cb(err);
         }
         
@@ -242,12 +265,57 @@ async.autoInject({
       });
     },
     
-    getValuesByAuthor(getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: EVCb<any>) {
+    getValuesByAuthor(mkdirAtHome: null, getBranchName: string, checkIfBranchExists: boolean, getCommitCount: number, cb: EVCb<any>) {
+      
+      const mapEmailToAuthor = new Map<string, string>();
+      
+      try {
+        var cnfraw = require(fnhomeConf);
+        var cnf: FameConf = cnfraw.default || cnfraw;
+        
+        const displayNames = cnf['display names'];
+        
+        if (!(displayNames && typeof displayNames === 'object' && !Array.isArray(displayNames))) {
+          throw new Error('The "display names" property in your fame.conf.js file needs to point to a plain object.');
+        }
+        
+        for (const [n, v] of Object.entries(displayNames)) {
+          if (!(v && Array.isArray(v.emails))) {
+            log.warn('The value for a display name entry needs to an object with an "emails" property.')
+          }
+          
+          for (const email of v.emails) {
+            mapEmailToAuthor.set(email, n);
+          }
+        }
+        
+      }
+      catch (err) {
+        
+        if (/Cannot find module/ig.test(String(err))) {
+          log.info('Could not find a fame.conf.js file.');
+        }
+        else if (!/exist/ig.test(String(err))) {
+          log.warn(err);
+        }
+        
+        cnf = {} as FameConf;
+      }
+      
+      const getAuthorName = (v: string): string => {
+        if (v.startsWith(magicString)) {
+          v = v.slice(3, -3);
+        }
+        if (mapEmailToAuthor.has(v)) {
+          return mapEmailToAuthor.get(v);
+        }
+        return v;
+      };
       
       const bn = String(getBranchName || '').trim();
       
       const k = cp.spawn('bash');
-      const cmd = `git log '${bn}' ${getAuthor()} --max-count=50000 --numstat --pretty='%ae';`;
+      const cmd = `git log '${bn}' ${getAuthor()} --max-count=50000 --numstat --pretty='✔❤☆%ae✔❤☆';`;
       k.stdin.end(cmd);
       
       const results = {} as { [key: string]: AuthorType };
@@ -271,23 +339,28 @@ async.autoInject({
       
       k.stdout.pipe(createParser()).on('data', d => {
           
-          const values = String(d || '').split(/\s+/g);
+          const rawLine = String(d || '');
+          const values = rawLine.split(/\s+/g);
           
           if (!values[0]) {
             return;
           }
           
-          if (values[1] && values[2]) {
+          if (!String(values[0]).startsWith(magicString) && values[1] && values[2]) {
             
             const v = results[currentAuthor];
             
             if (!v) {
-              throw new Error('No available author with email:' + currentAuthor);
+              throw new Error('No available author with email: ' + currentAuthor);
             }
             
             const f = String(values[2]);
             
-            if (f.startsWith('node_modules/') || f.startsWith('/node_modules/')) {
+            if (
+              f.startsWith('node_modules/') ||
+              f.startsWith('/node_modules/') ||
+              f.startsWith('./node_modules/')
+            ) {
               return;
             }
             
@@ -347,7 +420,7 @@ async.autoInject({
             return;
           }
           
-          currentAuthor = values[0];
+          currentAuthor = getAuthorName(rawLine);
           
           if (!results[currentAuthor]) {
             results[currentAuthor] = getNewAuthor(currentAuthor);
@@ -427,7 +500,8 @@ async.autoInject({
       let num = null;
       try {
         num = Number.parseInt(v);
-      } catch (e) {
+      }
+      catch (e) {
         // ignore
       }
       
@@ -456,7 +530,8 @@ async.autoInject({
             if (num === 0) {
               anum = String(a[num]).trim();
               bnum = String(b[num]).trim();
-            } else {
+            }
+            else {
               anum = Number.parseInt(String(a[num]).trim().split(' ')[0]);
               bnum = Number.parseInt(String(b[num]).trim().split(' ')[0]);
             }

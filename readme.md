@@ -14,14 +14,15 @@ People were complaining that the ruby/python tools were too slow, so I wrote thi
 $ npm install -g fame
 ```
 
-#### For latest version, use: `npm view fame version`
+> For latest version, use: `npm view fame version`
 
 -----
 
 <br>
+<br>
 
 <kbd>
- <image src="https://raw.githubusercontent.com/oresoftware/fame/master/media/big.png">
+ <img src="https://raw.githubusercontent.com/oresoftware/fame/master/media/big.png">
 </kbd>
 
 
@@ -62,6 +63,26 @@ fame --author=donnie --author=ronnie --author=jonnie
 ### More options
 
 <details>
+<summary class="text-primary mb-3">Handling multiple email addresses for same person.</summary>
+
+```shell
+fame --add-user <display name> -e <email> 
+```
+
+now, when fame runs at the command line, it will pick up the info from this file ($HOME/fame.conf.json), 
+to combine info from the different emails.
+
+You can add multiple emails like so:
+
+```shell
+fame -u <display name> -e <email> -e <email> 
+```
+
+</details>
+
+<br>
+
+<details>
 <summary class="text-primary mb-3">Sorting with --order and --sort options</summary>
 
 <br>
@@ -95,14 +116,16 @@ Comma-separated list, case-insensitive and whitespace-insensitive
 <summary class="text-primary mb-3">Matching on files (ignoring files too)</summary>
 
 <br>
+<br>
 
 ### Info for all matching files
 
 ```bash
 fame --match='\.js'
 ```
-
 -----
+
+<br>
 
 ### Info for all files that end with
 

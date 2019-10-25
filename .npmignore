@@ -9,6 +9,7 @@ lib
 media
 
 ### matching
+*.yml
 *.log
 *.md
 *.json

@@ -1,4 +1,4 @@
-
+'use strict';
 
 export const r2gSmokeTest = async () => {
   return true;
@@ -6,6 +6,15 @@ export const r2gSmokeTest = async () => {
 
 
 export type EVCb<T, E = any> = (err: E, val?: T) => void;
+
+
+export interface FameConf {
+  'display names': {
+    [key: string]: {
+      emails: Array<string>
+    }
+  }
+}
 
 
 export interface AuthorType {
@@ -28,9 +37,11 @@ export interface AuthorType {
 
 
 export interface CliOptions {
+  add: boolean,
   order: string,
   sort: string,
   asc: boolean,
+  ignore_email_warning: boolean,
   desc: boolean,
   extensions: Array<string>,
   endswith: Array<string>,
